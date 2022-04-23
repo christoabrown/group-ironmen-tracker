@@ -11,6 +11,7 @@ This plugin tracks information about your group ironman player and sends it to a
 * Quest state - completed, finished, in progress  
 
 ![](https://i.imgur.com/ewVRNKy.png)
+![](https://i.imgur.com/gNu4hvT.png)
 
 ## Setup
 Each group member that you want to track will need to install the plugin. Just one person will go to the site and create a group, the credentials it provides is shared with your group.
