@@ -37,4 +37,9 @@ public class LocationState implements ConsumableState {
         LocationState other = (LocationState) o;
         return (x == other.x) && (y == other.y) && (plane == other.plane);
     }
+
+    @Override
+    public String toString() {
+        return String.format("{ x: %d, y: %d, plane: %d }", x, y, plane);
+    }
 }

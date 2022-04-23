@@ -24,7 +24,7 @@ public class DataManager {
     private Gson gson;
     @Inject
     private OkHttpClient okHttpClient;
-    private static final String PUBLIC_BASE_URL = "http://localhost:8080";
+    private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
     @Getter
