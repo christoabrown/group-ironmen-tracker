@@ -79,11 +79,26 @@ public class DataManager {
                     } else {
                         log.error("Received response, but failed to submit the player data.");
                     }
+
+                    restoreStateIfNothingUpdated();
                 }
             } catch (Exception error) {
                 log.error("Failed to submit player data.");
+                restoreStateIfNothingUpdated();
             }
         }
+    }
+
+    // NOTE: These states should only be restored if a new update did not come in at some point before calling this
+    private void restoreStateIfNothingUpdated() {
+        inventory.restoreState();
+        bank.restoreState();
+        equipment.restoreState();
+        sharedBank.restoreState();
+        resources.restoreState();
+        skills.restoreState();
+        quests.restoreState();
+        position.restoreState();
     }
 
     private String getUpdateGroupMemberUrl() {

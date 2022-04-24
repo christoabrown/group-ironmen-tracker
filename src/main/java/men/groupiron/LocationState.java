@@ -1,9 +1,6 @@
 package men.groupiron;
 
 import lombok.Getter;
-import net.runelite.api.Client;
-import net.runelite.api.Player;
-import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 
 public class LocationState implements ConsumableState {
@@ -14,11 +11,7 @@ public class LocationState implements ConsumableState {
     @Getter
     private final int plane;
 
-    LocationState(Client client) {
-        Player player = client.getLocalPlayer();
-        assert player != null;
-        LocalPoint localPoint = player.getLocalLocation();
-        WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPoint);
+    LocationState(WorldPoint worldPoint) {
         x = worldPoint.getX();
         y = worldPoint.getY();
         plane = worldPoint.getPlane();

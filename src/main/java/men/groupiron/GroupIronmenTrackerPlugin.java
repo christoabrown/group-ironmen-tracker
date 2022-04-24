@@ -3,6 +3,8 @@ package men.groupiron;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
+import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.StatChanged;
@@ -60,7 +62,11 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     public void updateThingsThatDoChangeOften() {
         if (client.getGameState() != GameState.LOGGED_IN || client.getLocalPlayer() == null) return;
         dataManager.getResources().update(new ResourcesState(client));
-        dataManager.getPosition().update(new LocationState(client));
+
+        Player player = client.getLocalPlayer();
+        LocalPoint localPoint = player.getLocalLocation();
+        WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPoint);
+        dataManager.getPosition().update(new LocationState(worldPoint));
     }
 
     @Schedule(

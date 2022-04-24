@@ -29,6 +29,10 @@ public class DataState {
         if (consumedState != null) output.put(key, consumedState.get());
     }
 
+    public void restoreState() {
+        state.compareAndSet(null, previousState);
+    }
+
     public void commitTransaction() {
         state.set(previousState);
     }
