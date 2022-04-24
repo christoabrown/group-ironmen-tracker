@@ -27,15 +27,17 @@ public class ResourcesState implements ConsumableState {
     }
 
     @Getter
-    CurrentMax hitpoints;
+    private final CurrentMax hitpoints;
     @Getter
-    CurrentMax prayer;
+    private final CurrentMax prayer;
     @Getter
-    CurrentMax energy;
+    private final CurrentMax energy;
     @Getter
     int world;
+    private transient final String playerName;
 
-    ResourcesState(Client client) {
+    ResourcesState(String playerName, Client client) {
+        this.playerName = playerName;
         hitpoints = new CurrentMax(
                 client.getBoostedSkillLevel(Skill.HITPOINTS),
                 client.getRealSkillLevel(Skill.HITPOINTS)
@@ -54,6 +56,11 @@ public class ResourcesState implements ConsumableState {
     @Override
     public Object get() {
         return this;
+    }
+
+    @Override
+    public String whoOwnsThis() {
+        return playerName;
     }
 
     @Override

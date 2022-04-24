@@ -8,8 +8,10 @@ import java.util.Map;
 
 public class QuestState implements ConsumableState {
     private final Map<String, net.runelite.api.QuestState> questStateMap;
+    private transient final String playerName;
 
-    public QuestState(Client client) {
+    public QuestState(String playerName, Client client) {
+        this.playerName = playerName;
         this.questStateMap = new HashMap<>();
         for (Quest quest : Quest.values()) {
             questStateMap.put(String.valueOf(quest.getId()), quest.getState(client));
@@ -19,6 +21,11 @@ public class QuestState implements ConsumableState {
     @Override
     public Object get() {
         return questStateMap;
+    }
+
+    @Override
+    public String whoOwnsThis() {
+        return playerName;
     }
 
     @Override

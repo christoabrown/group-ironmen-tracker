@@ -8,8 +8,10 @@ import java.util.Map;
 
 public class SkillState implements ConsumableState {
     private final Map<String, Integer> skillXpMap;
+    private transient final String playerName;
 
-    public SkillState(Client client) {
+    public SkillState(String playerName, Client client) {
+        this.playerName = playerName;
         skillXpMap = new HashMap<>();
         for (Skill skill : Skill.values()) {
             skillXpMap.put(skill.getName(), client.getSkillExperience(skill));
@@ -19,6 +21,11 @@ public class SkillState implements ConsumableState {
     @Override
     public Object get() {
         return this.skillXpMap;
+    }
+
+    @Override
+    public String whoOwnsThis() {
+        return playerName;
     }
 
     @Override

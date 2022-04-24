@@ -60,13 +60,15 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             unit = ChronoUnit.SECONDS
     )
     public void updateThingsThatDoChangeOften() {
-        if (client.getGameState() != GameState.LOGGED_IN || client.getLocalPlayer() == null) return;
-        dataManager.getResources().update(new ResourcesState(client));
-
+        if (doNotUseThisData())
+            return;
         Player player = client.getLocalPlayer();
+        String playerName = player.getName();
+        dataManager.getResources().update(new ResourcesState(playerName, client));
+
         LocalPoint localPoint = player.getLocalLocation();
         WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPoint);
-        dataManager.getPosition().update(new LocationState(worldPoint));
+        dataManager.getPosition().update(new LocationState(playerName, worldPoint));
     }
 
     @Schedule(
@@ -74,31 +76,36 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             unit = ChronoUnit.SECONDS
     )
     public void updateThingsThatDoNotChangeOften() {
-        if (client.getGameState() != GameState.LOGGED_IN || client.getLocalPlayer() == null)
+        if (doNotUseThisData())
             return;
-        dataManager.getQuests().update(new QuestState(client));
+        String playerName = client.getLocalPlayer().getName();
+        dataManager.getQuests().update(new QuestState(playerName, client));
     }
 
     @Subscribe
     public void onStatChanged(StatChanged statChanged) {
-        if (client.getGameState() != GameState.LOGGED_IN || client.getLocalPlayer() == null)
-            return; // Is this possible?
-        dataManager.getSkills().update(new SkillState(client));
+        if (doNotUseThisData())
+            return;
+        String playerName = client.getLocalPlayer().getName();
+        dataManager.getSkills().update(new SkillState(playerName, client));
     }
 
     @Subscribe
     public void onItemContainerChanged(ItemContainerChanged event) {
+        if (doNotUseThisData())
+            return;
+        String playerName = client.getLocalPlayer().getName();
         final int id = event.getContainerId();
         ItemContainer container = event.getItemContainer();
 
         if (id == InventoryID.BANK.getId()) {
-            dataManager.getBank().update(new ItemContainerState(container, itemManager));
+            dataManager.getBank().update(new ItemContainerState(playerName, container, itemManager));
         } else if (id == InventoryID.INVENTORY.getId()) {
-            dataManager.getInventory().update(new ItemContainerState(container, itemManager, 28));
+            dataManager.getInventory().update(new ItemContainerState(playerName, container, itemManager, 28));
         } else if (id == InventoryID.EQUIPMENT.getId()) {
-            dataManager.getEquipment().update(new ItemContainerState(container, itemManager, 14));
+            dataManager.getEquipment().update(new ItemContainerState(playerName, container, itemManager, 14));
         } else if (id == InventoryID.GROUP_STORAGE.getId()) {
-            dataManager.getSharedBank().update(new ItemContainerState(container, itemManager));
+            dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
         }
     }
 
@@ -109,6 +116,10 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         if (menuAction == MenuAction.CC_OP && (param1 == SAVE_SHARED_STORAGE || param1 == BACK_TO_BANK_SHARED_STORAGE)) {
             dataManager.getSharedBank().commitTransaction();
         }
+    }
+
+    private boolean doNotUseThisData() {
+        return client.getGameState() != GameState.LOGGED_IN || client.getLocalPlayer() == null;
     }
 
     @Provides

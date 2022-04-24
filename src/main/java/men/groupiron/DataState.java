@@ -26,7 +26,11 @@ public class DataState {
 
     public void consumeState(Map<String, Object> output) {
         final ConsumableState consumedState = state.getAndSet(null);
-        if (consumedState != null) output.put(key, consumedState.get());
+        if (consumedState != null) {
+            final String whoOwnsThis = consumedState.whoOwnsThis();
+            final String whoIsUpdating = (String) output.get("name");
+            if (whoOwnsThis != null && whoOwnsThis.equals(whoIsUpdating)) output.put(key, consumedState.get());
+        }
     }
 
     public void restoreState() {

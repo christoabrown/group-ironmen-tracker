@@ -10,8 +10,10 @@ public class LocationState implements ConsumableState {
     private final int y;
     @Getter
     private final int plane;
+    private transient final String playerName;
 
-    LocationState(WorldPoint worldPoint) {
+    LocationState(String playerName, WorldPoint worldPoint) {
+        this.playerName = playerName;
         x = worldPoint.getX();
         y = worldPoint.getY();
         plane = worldPoint.getPlane();
@@ -20,6 +22,11 @@ public class LocationState implements ConsumableState {
     @Override
     public Object get() {
         return this;
+    }
+
+    @Override
+    public String whoOwnsThis() {
+        return playerName;
     }
 
     @Override

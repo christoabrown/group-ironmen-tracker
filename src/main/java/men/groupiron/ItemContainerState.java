@@ -32,8 +32,10 @@ public class ItemContainerState implements ConsumableState {
     }
 
     private final List<ItemContainerItem> items;
+    private transient final String playerName;
 
-    public ItemContainerState(ItemContainer container, ItemManager itemManager) {
+    public ItemContainerState(String playerName, ItemContainer container, ItemManager itemManager) {
+        this.playerName = playerName;
         items = new ArrayList<>();
         Item[] contents = container.getItems();
         for (final Item item : contents) {
@@ -43,7 +45,8 @@ public class ItemContainerState implements ConsumableState {
 
     // NOTE: This is for when we care about the order of the items in the container
     // like the player inventory and equipment.
-    public ItemContainerState(ItemContainer container, ItemManager itemManager, int containerSize) {
+    public ItemContainerState(String playerName, ItemContainer container, ItemManager itemManager, int containerSize) {
+        this.playerName = playerName;
         items = new ArrayList<>();
         for (int i = 0; i < containerSize; i++) {
             Item item = container.getItem(i);
@@ -67,6 +70,11 @@ public class ItemContainerState implements ConsumableState {
     @Override
     public Object get() {
         return items;
+    }
+
+    @Override
+    public String whoOwnsThis() {
+        return playerName;
     }
 
     @Override
