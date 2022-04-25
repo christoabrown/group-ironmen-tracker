@@ -26,6 +26,8 @@ public class DataManager {
     private OkHttpClient okHttpClient;
     private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private boolean isMemberInGroup = false;
+    private int skipNextNAttempts = 0;
 
     @Getter
     private final DataState inventory = new DataState("inventory", false);
@@ -46,46 +48,86 @@ public class DataManager {
 
     public void submitToApi() {
         if (client.getLocalPlayer() == null || client.getLocalPlayer().getName() == null || isBadWorldType()) return;
+        if (skipNextNAttempts-- > 0) return;
 
         String playerName = client.getLocalPlayer().getName();
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("name", playerName);
-        inventory.consumeState(updates);
-        bank.consumeState(updates);
-        equipment.consumeState(updates);
-        sharedBank.consumeState(updates);
-        resources.consumeState(updates);
-        skills.consumeState(updates);
-        quests.consumeState(updates);
-        position.consumeState(updates);
-
-        String url = getUpdateGroupMemberUrl();
         String groupToken = config.authorizationToken().trim();
 
-        if (updates.size() > 1 && url != null && groupToken.length() > 0) {
-            RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
-            Request request = new Request.Builder()
-                    .url(url)
-                    .header("Authorization", groupToken)
-                    .post(body)
-                    .build();
-            Call call = okHttpClient.newCall(request);
+        if (groupToken.length() > 0) {
+            // NOTE: We do this check so characters who are not authorized won't waste time serializing and sending
+            // their data. It is OK if the user switches characters or is removed from the group since the update call
+            // below will return a 401 where we set isMemberOfGroup = false again.
+            if (!isMemberInGroup) {
+                boolean isMember = checkIfPlayerIsInGroup(groupToken, playerName);
 
-            try (Response response = call.execute()) {
-                if (!response.isSuccessful()) {
-                    // log.error(response.body().string());
-                    if (response.code() == 401) {
-                        log.error("User not authorized to submit player data with current settings.");
-                    } else {
-                        log.error("Received response, but failed to submit the player data.");
+                if (!isMember) {
+                    // NOTE: We don't really need to check this everytime I don't think.
+                    // Waiting for a game state event is not what we really want either
+                    // since membership can change at anytime from the website.
+                    skipNextNAttempts = 10;
+                    return;
+                }
+                isMemberInGroup = true;
+            }
+
+            String url = getUpdateGroupMemberUrl();
+            if (url == null) return;
+
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("name", playerName);
+            inventory.consumeState(updates);
+            bank.consumeState(updates);
+            equipment.consumeState(updates);
+            sharedBank.consumeState(updates);
+            resources.consumeState(updates);
+            skills.consumeState(updates);
+            quests.consumeState(updates);
+            position.consumeState(updates);
+
+            if (updates.size() > 1) {
+                RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
+                Request request = new Request.Builder()
+                        .url(url)
+                        .header("Authorization", groupToken)
+                        .post(body)
+                        .build();
+                Call call = okHttpClient.newCall(request);
+
+                try (Response response = call.execute()) {
+                    if (!response.isSuccessful()) {
+                        // log.error(response.body().string());
+                        skipNextNAttempts = 10;
+                        if (response.code() == 401) {
+                            // log.error("User not authorized to submit player data with current settings.");
+                            isMemberInGroup = false;
+                        }
+
+                        restoreStateIfNothingUpdated();
                     }
-
+                } catch (Exception _error) {
+                    skipNextNAttempts = 10;
                     restoreStateIfNothingUpdated();
                 }
-            } catch (Exception error) {
-                log.error("Failed to submit player data.");
-                restoreStateIfNothingUpdated();
             }
+        }
+    }
+
+    private boolean checkIfPlayerIsInGroup(String groupToken, String playerName) {
+        String url = amIMemberOfGroupUrl(playerName);
+        if (url == null) return false;
+
+        Request request = new Request.Builder()
+                .url(url)
+                .header("Authorization", groupToken)
+                .get()
+                .build();
+        Call call = okHttpClient.newCall(request);
+
+        try (Response response = call.execute()) {
+            // log.error(response.body().string());
+            return response.isSuccessful();
+        } catch (Exception _error) {
+            return false;
         }
     }
 
@@ -101,19 +143,37 @@ public class DataManager {
         position.restoreState();
     }
 
-    private String getUpdateGroupMemberUrl() {
+    private String baseUrl() {
         String baseUrlOverride = config.baseUrlOverride().trim();
-        String url = PUBLIC_BASE_URL;
-        if (baseUrlOverride.length() > 0) {
-            url = baseUrlOverride;
-        }
+        if (baseUrlOverride.length() > 0) return baseUrlOverride;
+        return PUBLIC_BASE_URL;
+    }
 
+    private String groupName() {
         String groupName = config.groupName().trim();
         if (groupName.length() == 0) {
             return null;
         }
 
-        return String.format("%s/api/group/%s/update-group-member", url, groupName);
+        return groupName;
+    }
+
+    private String getUpdateGroupMemberUrl() {
+        String baseUrl = baseUrl();
+        String groupName = groupName();
+
+        if (baseUrl == null || groupName == null) return null;
+
+        return String.format("%s/api/group/%s/update-group-member", baseUrl, groupName);
+    }
+
+    private String amIMemberOfGroupUrl(String playerName) {
+        String baseUrl = baseUrl();
+        String groupName = groupName();
+
+        if (baseUrl == null || groupName == null) return null;
+
+        return String.format("%s/api/group/%s/am-i-in-group?member_name=%s", baseUrl, groupName, playerName);
     }
 
     private boolean isBadWorldType() {
