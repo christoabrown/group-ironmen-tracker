@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.WorldType;
+import net.runelite.client.RuneLiteProperties;
 import okhttp3.*;
 
 import javax.inject.Inject;
@@ -23,9 +24,11 @@ public class DataManager {
     @Inject
     private Gson gson;
     @Inject
-    private OkHttpClient okHttpClient;
+    private OkHttpClient runeliteHttpClient;
+    private OkHttpClient okHttpClient = null;
     private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private static final String USER_AGENT = "GroupIronmenTracker/1.0 " + "RuneLite/" + RuneLiteProperties.getVersion();
     private boolean isMemberInGroup = false;
     private int skipNextNAttempts = 0;
 
@@ -45,6 +48,20 @@ public class DataManager {
     private final DataState quests = new DataState("quests", false);
     @Getter
     private final DataState position = new DataState("coordinates", false);
+
+    // NOTE: The runelite client adds its own User-Agent header, this sets it up so it uses our own string instead
+    private OkHttpClient getHttpClient() {
+        if (okHttpClient != null) return okHttpClient;
+
+        okHttpClient = runeliteHttpClient.newBuilder().addNetworkInterceptor(chain -> {
+            Request userAgentRequest = chain.request()
+                    .newBuilder()
+                    .header("User-Agent", USER_AGENT)
+                    .build();
+            return chain.proceed(userAgentRequest);
+        }).build();
+        return okHttpClient;
+    }
 
     public void submitToApi() {
         if (client.getLocalPlayer() == null || client.getLocalPlayer().getName() == null || isBadWorldType()) return;
@@ -91,7 +108,7 @@ public class DataManager {
                         .header("Authorization", groupToken)
                         .post(body)
                         .build();
-                Call call = okHttpClient.newCall(request);
+                Call call = getHttpClient().newCall(request);
 
                 try (Response response = call.execute()) {
                     if (!response.isSuccessful()) {
@@ -121,7 +138,7 @@ public class DataManager {
                 .header("Authorization", groupToken)
                 .get()
                 .build();
-        Call call = okHttpClient.newCall(request);
+        Call call = getHttpClient().newCall(request);
 
         try (Response response = call.execute()) {
             // log.error(response.body().string());
