@@ -39,7 +39,9 @@ public class ItemContainerState implements ConsumableState {
         items = new ArrayList<>();
         Item[] contents = container.getItems();
         for (final Item item : contents) {
-            addItemIfValid(item, itemManager);
+            if (isItemValid(item, itemManager)) {
+                items.add(new ItemContainerItem(itemManager.canonicalize(item.getId()), item.getQuantity()));
+            }
         }
     }
 
@@ -50,21 +52,24 @@ public class ItemContainerState implements ConsumableState {
         items = new ArrayList<>();
         for (int i = 0; i < containerSize; i++) {
             Item item = container.getItem(i);
-            if (item == null) {
+            if (!isItemValid(item, itemManager)) {
                 items.add(new ItemContainerItem(0, 0));
             } else {
-                addItemIfValid(item, itemManager);
+                items.add(new ItemContainerItem(itemManager.canonicalize(item.getId()), item.getQuantity()));
             }
         }
     }
 
-    private void addItemIfValid(Item item, ItemManager itemManager) {
+    private boolean isItemValid(Item item, ItemManager itemManager) {
+        if (item == null) return false;
         final int id = item.getId();
         final int quantity = item.getQuantity();
-        if (itemManager != null && id >= 0 && quantity > 0) {
-            final int canonicalId = itemManager.canonicalize(id);
-            items.add(new ItemContainerItem(canonicalId, quantity));
+        if (itemManager != null) {
+            final boolean isPlaceholder = itemManager.getItemComposition(id).getPlaceholderTemplateId() != -1;
+
+            return id >= 0 && quantity >= 0 && !isPlaceholder;
         }
+        return false;
     }
 
     @Override
