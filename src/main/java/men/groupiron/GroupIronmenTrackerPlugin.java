@@ -69,6 +69,8 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         LocalPoint localPoint = player.getLocalLocation();
         WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPoint);
         dataManager.getPosition().update(new LocationState(playerName, worldPoint));
+
+        dataManager.getRunePouch().update(new RunePouchState(playerName, client));
     }
 
     @Schedule(
