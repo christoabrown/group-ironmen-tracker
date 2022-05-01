@@ -2,6 +2,7 @@ package men.groupiron;
 
 import net.runelite.api.Client;
 import net.runelite.api.Varbits;
+import net.runelite.client.game.RunepouchRune;
 
 public class RunePouchState implements ConsumableState {
     private final ItemContainerItem rune1;
@@ -11,9 +12,18 @@ public class RunePouchState implements ConsumableState {
 
     public RunePouchState(String playerName, Client client) {
         this.playerName = playerName;
-        rune1 = new ItemContainerItem(client.getVarbitValue(Varbits.RUNE_POUCH_RUNE1), client.getVarbitValue(Varbits.RUNE_POUCH_AMOUNT1));
-        rune2 = new ItemContainerItem(client.getVarbitValue(Varbits.RUNE_POUCH_RUNE2), client.getVarbitValue(Varbits.RUNE_POUCH_AMOUNT2));
-        rune3 = new ItemContainerItem(client.getVarbitValue(Varbits.RUNE_POUCH_RUNE3), client.getVarbitValue(Varbits.RUNE_POUCH_AMOUNT3));
+        rune1 = itemForRune(client.getVarbitValue(Varbits.RUNE_POUCH_RUNE1), client.getVarbitValue(Varbits.RUNE_POUCH_AMOUNT1));
+        rune2 = itemForRune(client.getVarbitValue(Varbits.RUNE_POUCH_RUNE2), client.getVarbitValue(Varbits.RUNE_POUCH_AMOUNT2));
+        rune3 = itemForRune(client.getVarbitValue(Varbits.RUNE_POUCH_RUNE3), client.getVarbitValue(Varbits.RUNE_POUCH_AMOUNT3));
+    }
+
+    private ItemContainerItem itemForRune(int varbit, int amount) {
+        RunepouchRune rune = RunepouchRune.getRune(varbit);
+        if (rune == null) {
+            return new ItemContainerItem(0, 0);
+        }
+
+        return new ItemContainerItem(rune.getItemId(), amount);
     }
 
     @Override
