@@ -49,6 +49,8 @@ public class DataManager {
     private final DataState position = new DataState("coordinates", false);
     @Getter
     private final DataState runePouch = new DataState("rune_pouch", false);
+    @Getter
+    private final DataState interacting = new DataState("interacting", false);
 
     public void submitToApi() {
         if (client.getLocalPlayer() == null || client.getLocalPlayer().getName() == null || isBadWorldType()) return;
@@ -88,6 +90,7 @@ public class DataManager {
             quests.consumeState(updates);
             position.consumeState(updates);
             runePouch.consumeState(updates);
+            interacting.consumeState(updates);
 
             if (updates.size() > 1) {
                 RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
@@ -149,6 +152,7 @@ public class DataManager {
         quests.restoreState();
         position.restoreState();
         runePouch.restoreState();
+        interacting.restoreState();
     }
 
     private String baseUrl() {

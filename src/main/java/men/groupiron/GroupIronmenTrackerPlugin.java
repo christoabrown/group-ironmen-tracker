@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.api.events.InteractingChanged;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.StatChanged;
@@ -71,6 +72,8 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         dataManager.getPosition().update(new LocationState(playerName, worldPoint));
 
         dataManager.getRunePouch().update(new RunePouchState(playerName, client));
+
+        updateInteracting();
     }
 
     @Schedule(
@@ -117,6 +120,25 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         final MenuAction menuAction = event.getMenuAction();
         if (menuAction == MenuAction.CC_OP && (param1 == SAVE_SHARED_STORAGE || param1 == BACK_TO_BANK_SHARED_STORAGE)) {
             dataManager.getSharedBank().commitTransaction();
+        }
+    }
+
+    @Subscribe
+    private void onInteractingChanged(InteractingChanged event) {
+        if (event.getSource() != client.getLocalPlayer()) return;
+        updateInteracting();
+    }
+
+    private void updateInteracting() {
+        Player player = client.getLocalPlayer();
+
+        if (player != null) {
+            Actor actor = player.getInteracting();
+
+            if (actor != null) {
+                String playerName = player.getName();
+                dataManager.getInteracting().update(new InteractingState(playerName, actor, client));
+            }
         }
     }
 
