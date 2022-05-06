@@ -75,8 +75,6 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         dataManager.getPosition().update(new LocationState(playerName, worldPoint));
 
         dataManager.getRunePouch().update(new RunePouchState(playerName, client));
-
-        updateInteracting();
     }
 
     @Schedule(
@@ -93,6 +91,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     @Subscribe
     public void onGameTick(GameTick gameTick) {
         --itemsDeposited;
+        updateInteracting();
     }
 
     @Subscribe

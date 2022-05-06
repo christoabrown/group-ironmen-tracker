@@ -27,7 +27,7 @@ public class DataManager {
     private OkHttpClient okHttpClient;
     private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String USER_AGENT = "GroupIronmenTracker/1.1 " + "RuneLite/" + RuneLiteProperties.getVersion();
+    private static final String USER_AGENT = "GroupIronmenTracker/1.2 " + "RuneLite/" + RuneLiteProperties.getVersion();
     private boolean isMemberInGroup = false;
     private int skipNextNAttempts = 0;
 
