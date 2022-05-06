@@ -6,11 +6,15 @@ public class ItemContainerItem {
     @Getter
     private final int id;
     @Getter
-    private final int quantity;
+    private int quantity;
 
     ItemContainerItem(int id, int quantity) {
         this.id = id;
         this.quantity = quantity;
+    }
+
+    public void addQuantity(int quantity) {
+        this.quantity += quantity;
     }
 
     @Override

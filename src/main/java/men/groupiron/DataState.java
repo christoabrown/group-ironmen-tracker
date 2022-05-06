@@ -33,6 +33,10 @@ public class DataState {
         }
     }
 
+    public ConsumableState mostRecentState() {
+        return this.previousState;
+    }
+
     public void restoreState() {
         state.compareAndSet(null, previousState);
     }

@@ -5,8 +5,11 @@ import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.client.game.ItemManager;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class ItemContainerState implements ConsumableState {
@@ -37,6 +40,73 @@ public class ItemContainerState implements ConsumableState {
                 items.add(new ItemContainerItem(itemManager.canonicalize(item.getId()), item.getQuantity()));
             }
         }
+    }
+
+    public ItemContainerState(String playerName, List<ItemContainerItem> items) {
+        this.playerName = playerName;
+        this.items = items;
+    }
+
+    @Nullable
+    public ItemContainerState add(ItemContainerState itemsToAdd) {
+        if (itemsToAdd == null || !itemsToAdd.whoOwnsThis().equals(whoOwnsThis())) return null;
+        Map<Integer, ItemContainerItem> thisItems = getItemMap();
+        Map<Integer, ItemContainerItem> otherItems = itemsToAdd.getItemMap();
+        List<ItemContainerItem> result = new ArrayList<>();
+
+        for (Integer itemId : thisItems.keySet()) {
+            ItemContainerItem item = thisItems.get(itemId);
+            if (otherItems.containsKey(itemId)) {
+                item.addQuantity(otherItems.get(itemId).getQuantity());
+            }
+            result.add(item);
+        }
+
+        for (Integer itemId : otherItems.keySet()) {
+            if (!thisItems.containsKey(itemId)) {
+                result.add(otherItems.get(itemId));
+            }
+        }
+
+        return new ItemContainerState(whoOwnsThis(), result);
+    }
+
+    @Nullable
+    public ItemContainerState whatGotRemoved(ItemContainerState other) {
+        if (other == null || !other.whoOwnsThis().equals(whoOwnsThis())) return null;
+        Map<Integer, ItemContainerItem> thisItems = getItemMap();
+        Map<Integer, ItemContainerItem> otherItems = other.getItemMap();
+        List<ItemContainerItem> result = new ArrayList<>();
+
+        for (Integer itemId : otherItems.keySet()) {
+            ItemContainerItem otherItem = otherItems.get(itemId);
+            if (otherItem.getId() == 0) continue;
+
+            if (thisItems.containsKey(itemId)) {
+                ItemContainerItem thisItem = thisItems.get(itemId);
+                int quantityDifference = otherItem.getQuantity() - thisItem.getQuantity();
+                if (quantityDifference > 0) {
+                    result.add(new ItemContainerItem(itemId, quantityDifference));
+                }
+            } else {
+                result.add(new ItemContainerItem(itemId, otherItem.getQuantity()));
+            }
+        }
+
+        return new ItemContainerState(playerName, result);
+    }
+
+    public Map<Integer, ItemContainerItem> getItemMap() {
+        Map<Integer, ItemContainerItem> itemMap = new HashMap<>();
+        for (ItemContainerItem itemContainerItem : items) {
+            Integer id = itemContainerItem.getId();
+            if (itemMap.containsKey(id)) {
+                itemMap.get(id).addQuantity(itemContainerItem.getQuantity());
+            } else {
+                itemMap.put(id, new ItemContainerItem(id, itemContainerItem.getQuantity()));
+            }
+        }
+        return itemMap;
     }
 
     private boolean isItemValid(Item item, ItemManager itemManager) {

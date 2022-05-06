@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.InteractingChanged;
-import net.runelite.api.events.ItemContainerChanged;
-import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.events.StatChanged;
+import net.runelite.api.events.*;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -32,10 +30,15 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private DataManager dataManager;
     @Inject
     private ItemManager itemManager;
+    private int itemsDeposited = 0;
     private static final int SECONDS_BETWEEN_UPLOADS = 1;
     private static final int SECONDS_BETWEEN_INFREQUENT_DATA_CHANGES = 60;
     private static final int SAVE_SHARED_STORAGE = 47448098;
     private static final int BACK_TO_BANK_SHARED_STORAGE = 47448073;
+    private static final int DEPOSIT_ITEM = 12582914;
+    private static final int DEPOSIT_INVENTORY = 12582916;
+    private static final int DEPOSIT_EQUIPMENT = 12582918;
+    private static final int CHATBOX_ENTERED = 681;
 
     @Override
     protected void startUp() throws Exception {
@@ -88,6 +91,11 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     }
 
     @Subscribe
+    public void onGameTick(GameTick gameTick) {
+        --itemsDeposited;
+    }
+
+    @Subscribe
     public void onStatChanged(StatChanged statChanged) {
         if (doNotUseThisData())
             return;
@@ -106,11 +114,29 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         if (id == InventoryID.BANK.getId()) {
             dataManager.getBank().update(new ItemContainerState(playerName, container, itemManager));
         } else if (id == InventoryID.INVENTORY.getId()) {
-            dataManager.getInventory().update(new ItemContainerState(playerName, container, itemManager, 28));
+            ItemContainerState newInventoryState = new ItemContainerState(playerName, container, itemManager, 28);
+            if (itemsDeposited > 0) {
+                updateDeposited(newInventoryState, (ItemContainerState) dataManager.getInventory().mostRecentState());
+            }
+
+            dataManager.getInventory().update(newInventoryState);
         } else if (id == InventoryID.EQUIPMENT.getId()) {
-            dataManager.getEquipment().update(new ItemContainerState(playerName, container, itemManager, 14));
+            ItemContainerState newEquipmentState = new ItemContainerState(playerName, container, itemManager, 14);
+            if (itemsDeposited > 0) {
+                updateDeposited(newEquipmentState, (ItemContainerState) dataManager.getEquipment().mostRecentState());
+            }
+
+            dataManager.getEquipment().update(newEquipmentState);
         } else if (id == InventoryID.GROUP_STORAGE.getId()) {
+            dataManager.getDeposited().reset();
             dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
+        }
+    }
+
+    @Subscribe
+    private void onScriptPostFired(ScriptPostFired event) {
+        if (event.getScriptId() == CHATBOX_ENTERED && client.getWidget(WidgetInfo.DEPOSIT_BOX_INVENTORY_ITEMS_CONTAINER) != null) {
+            itemsMayHaveBeenDeposited();
         }
     }
 
@@ -118,8 +144,12 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private void onMenuOptionClicked(MenuOptionClicked event) {
         final int param1 = event.getParam1();
         final MenuAction menuAction = event.getMenuAction();
-        if (menuAction == MenuAction.CC_OP && (param1 == SAVE_SHARED_STORAGE || param1 == BACK_TO_BANK_SHARED_STORAGE)) {
-            dataManager.getSharedBank().commitTransaction();
+        if (menuAction == MenuAction.CC_OP) {
+            if (param1 == SAVE_SHARED_STORAGE || param1 == BACK_TO_BANK_SHARED_STORAGE) {
+                dataManager.getSharedBank().commitTransaction();
+            } else if (param1 == DEPOSIT_ITEM || param1 == DEPOSIT_INVENTORY || param1 == DEPOSIT_EQUIPMENT) {
+                itemsMayHaveBeenDeposited();
+            }
         }
     }
 
@@ -127,6 +157,17 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private void onInteractingChanged(InteractingChanged event) {
         if (event.getSource() != client.getLocalPlayer()) return;
         updateInteracting();
+    }
+
+    private void itemsMayHaveBeenDeposited() {
+        // NOTE: In order to determine if an item has gone through the deposit box we first detect if any of the menu
+        // actions were performed OR a custom amount was entered while the deposit box inventory widget was opened.
+        // Then we allow up to two game ticks were an inventory changed event can occur and at that point we assume
+        // it must have been caused by the action detected just before. We can't check the inventory at the time of
+        // either interaction since the inventory may have not been updated yet. We also cannot just check that the deposit
+        // box window is open in the item container event since it is possible for a player to close the widget before
+        // the event handler is called.
+        itemsDeposited = 2;
     }
 
     private void updateInteracting() {
@@ -140,6 +181,11 @@ public class GroupIronmenTrackerPlugin extends Plugin {
                 dataManager.getInteracting().update(new InteractingState(playerName, actor, client));
             }
         }
+    }
+
+    private void updateDeposited(ItemContainerState newState, ItemContainerState previousState) {
+        ItemContainerState deposited = newState.whatGotRemoved(previousState);
+        dataManager.getDeposited().update(deposited);
     }
 
     private boolean doNotUseThisData() {

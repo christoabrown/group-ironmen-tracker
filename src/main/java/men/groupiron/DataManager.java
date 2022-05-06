@@ -51,6 +51,8 @@ public class DataManager {
     private final DataState runePouch = new DataState("rune_pouch", false);
     @Getter
     private final DataState interacting = new DataState("interacting", false);
+    @Getter
+    private final DepositedItems deposited = new DepositedItems();
 
     public void submitToApi() {
         if (client.getLocalPlayer() == null || client.getLocalPlayer().getName() == null || isBadWorldType()) return;
@@ -91,6 +93,7 @@ public class DataManager {
             position.consumeState(updates);
             runePouch.consumeState(updates);
             interacting.consumeState(updates);
+            deposited.consumeState(updates);
 
             if (updates.size() > 1) {
                 RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
@@ -153,6 +156,7 @@ public class DataManager {
         position.restoreState();
         runePouch.restoreState();
         interacting.restoreState();
+        deposited.restoreState();
     }
 
     private String baseUrl() {
