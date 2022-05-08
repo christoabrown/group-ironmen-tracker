@@ -111,6 +111,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         ItemContainer container = event.getItemContainer();
 
         if (id == InventoryID.BANK.getId()) {
+            dataManager.getDeposited().reset();
             dataManager.getBank().update(new ItemContainerState(playerName, container, itemManager));
         } else if (id == InventoryID.SEED_VAULT.getId()) {
           dataManager.getSeedVault().update(new ItemContainerState(playerName, container, itemManager));
@@ -129,7 +130,6 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
             dataManager.getEquipment().update(newEquipmentState);
         } else if (id == InventoryID.GROUP_STORAGE.getId()) {
-            dataManager.getDeposited().reset();
             dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
         }
     }
