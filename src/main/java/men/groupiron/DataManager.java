@@ -52,6 +52,8 @@ public class DataManager {
     @Getter
     private final DataState interacting = new DataState("interacting", false);
     @Getter
+    private final DataState seedVault = new DataState("seed_vault", false);
+    @Getter
     private final DepositedItems deposited = new DepositedItems();
 
     public void submitToApi() {
@@ -94,6 +96,7 @@ public class DataManager {
             runePouch.consumeState(updates);
             interacting.consumeState(updates);
             deposited.consumeState(updates);
+            seedVault.consumeState(updates);
 
             if (updates.size() > 1) {
                 RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
@@ -157,6 +160,7 @@ public class DataManager {
         runePouch.restoreState();
         interacting.restoreState();
         deposited.restoreState();
+        seedVault.restoreState();
     }
 
     private String baseUrl() {
