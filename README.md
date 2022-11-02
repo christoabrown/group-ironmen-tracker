@@ -4,7 +4,7 @@ Source for frontend and server: [https://github.com/christoabrown/group-ironmen]
 
 This plugin tracks information about your group ironman player and sends it to a server where you and your other group members can view it. Currently it tracks:
 
-* Inventory, equipment, bank, rune pouch, seed vault, 3and shared bank
+* Inventory, equipment, bank, rune pouch, seed vault, and shared bank
 * Skill XP
 * World position, viewable in an interactive map
 * HP, prayer, energy, and world as well as showing inactivity
