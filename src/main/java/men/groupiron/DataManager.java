@@ -27,7 +27,7 @@ public class DataManager {
     private OkHttpClient okHttpClient;
     private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String USER_AGENT = "GroupIronmenTracker/1.3 " + "RuneLite/" + RuneLiteProperties.getVersion();
+    private static final String USER_AGENT = "GroupIronmenTracker/1.4 " + "RuneLite/" + RuneLiteProperties.getVersion();
     private boolean isMemberInGroup = false;
     private int skipNextNAttempts = 0;
 
@@ -53,6 +53,8 @@ public class DataManager {
     private final DataState interacting = new DataState("interacting", false);
     @Getter
     private final DataState seedVault = new DataState("seed_vault", false);
+    @Getter
+    private final DataState achievementDiary = new DataState("diary_vars", false);
     @Getter
     private final DepositedItems deposited = new DepositedItems();
 
@@ -97,29 +99,33 @@ public class DataManager {
             interacting.consumeState(updates);
             deposited.consumeState(updates);
             seedVault.consumeState(updates);
+            achievementDiary.consumeState(updates);
 
             if (updates.size() > 1) {
-                RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
-                Request request = new Request.Builder()
-                        .url(url)
-                        .header("Authorization", groupToken)
-                        .header("User-Agent", USER_AGENT)
-                        .post(body)
-                        .build();
-                Call call = okHttpClient.newCall(request);
+                try {
+                    RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .header("Authorization", groupToken)
+                            .header("User-Agent", USER_AGENT)
+                            .post(body)
+                            .build();
+                    Call call = okHttpClient.newCall(request);
 
-                try (Response response = call.execute()) {
-                    if (!response.isSuccessful()) {
-                        // log.error(response.body().string());
-                        skipNextNAttempts = 10;
-                        if (response.code() == 401) {
-                            // log.error("User not authorized to submit player data with current settings.");
-                            isMemberInGroup = false;
+                    try (Response response = call.execute()) {
+                        if (!response.isSuccessful()) {
+                            // log.error(response.body().string());
+                            skipNextNAttempts = 10;
+                            if (response.code() == 401) {
+                                // log.error("User not authorized to submit player data with current settings.");
+                                isMemberInGroup = false;
+                            }
+
+                            restoreStateIfNothingUpdated();
                         }
-
-                        restoreStateIfNothingUpdated();
                     }
                 } catch (Exception _error) {
+                    // log.error(_error.toString());
                     skipNextNAttempts = 10;
                     restoreStateIfNothingUpdated();
                 }
@@ -161,6 +167,7 @@ public class DataManager {
         interacting.restoreState();
         deposited.restoreState();
         seedVault.restoreState();
+        achievementDiary.restoreState();
     }
 
     private String baseUrl() {

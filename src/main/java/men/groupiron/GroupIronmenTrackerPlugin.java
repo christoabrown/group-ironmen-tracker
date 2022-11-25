@@ -86,6 +86,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             return;
         String playerName = client.getLocalPlayer().getName();
         dataManager.getQuests().update(new QuestState(playerName, client));
+        dataManager.getAchievementDiary().update(new AchievementDiaryState(playerName, client));
     }
 
     @Subscribe

@@ -29,7 +29,9 @@ public class DataState {
         if (consumedState != null) {
             final String whoOwnsThis = consumedState.whoOwnsThis();
             final String whoIsUpdating = (String) output.get("name");
-            if (whoOwnsThis != null && whoOwnsThis.equals(whoIsUpdating)) output.put(key, consumedState.get());
+            if (whoOwnsThis != null && whoOwnsThis.equals(whoIsUpdating)) {
+                output.put(key, consumedState.get());
+            }
         }
     }
 

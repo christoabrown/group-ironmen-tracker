@@ -1,5 +1,6 @@
 # Group Ironmen Tracker Plugin
 Website: [groupiron.men](https://groupiron.men)  
+Demo: [grouiron.men/demo](https://groupiron.men/demo)  
 Source for frontend and server: [https://github.com/christoabrown/group-ironmen](https://github.com/christoabrown/group-ironmen)
 
 This plugin tracks information about your group ironman player and sends it to a server where you and your other group members can view it. Currently it tracks:
@@ -7,9 +8,10 @@ This plugin tracks information about your group ironman player and sends it to a
 * Inventory, equipment, bank, rune pouch, seed vault, and shared bank
 * Skill XP
 * World position, viewable in an interactive map
-* HP, prayer, energy, and world as well as showing inactivity
-* Quest state - completed, finished, in progress
+* HP, prayer, energy, and world
+* Quest completion status
 * Health and position of npcs the player is interacting with
+* Achievement Diaries
 
 ![](https://i.imgur.com/1Mdz8RU.png)
 ![](https://i.imgur.com/Rs0ruRE.png)
