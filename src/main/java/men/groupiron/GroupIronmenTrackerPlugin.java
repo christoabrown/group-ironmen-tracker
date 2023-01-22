@@ -139,6 +139,8 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             dataManager.getEquipment().update(newEquipmentState);
         } else if (id == InventoryID.GROUP_STORAGE.getId()) {
             dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
+        } else if (id == CustomInventoryId.TACKLE_BOX) {
+            dataManager.getTackleBox().update(new ItemContainerState(playerName, container, itemManager, 32));
         }
     }
 

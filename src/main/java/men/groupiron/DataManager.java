@@ -56,6 +56,8 @@ public class DataManager {
     @Getter
     private final DataState achievementDiary = new DataState("diary_vars", false);
     @Getter
+    private final DataState tackleBox = new DataState("tackle_box", false);
+    @Getter
     private final DepositedItems deposited = new DepositedItems();
 
     public void submitToApi() {
@@ -100,6 +102,7 @@ public class DataManager {
             deposited.consumeState(updates);
             seedVault.consumeState(updates);
             achievementDiary.consumeState(updates);
+            tackleBox.consumeState(updates);
 
             if (updates.size() > 1) {
                 try {
@@ -168,6 +171,7 @@ public class DataManager {
         deposited.restoreState();
         seedVault.restoreState();
         achievementDiary.restoreState();
+        tackleBox.restoreState();
     }
 
     private String baseUrl() {
