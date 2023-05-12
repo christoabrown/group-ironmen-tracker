@@ -109,6 +109,10 @@ public class ItemContainerState implements ConsumableState {
         return itemMap;
     }
 
+    public boolean isEmpty() {
+        return items.isEmpty();
+    }
+
     private boolean isItemValid(Item item, ItemManager itemManager) {
         if (item == null) return false;
         final int id = item.getId();

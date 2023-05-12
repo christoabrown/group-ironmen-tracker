@@ -14,9 +14,13 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
+import net.runelite.client.util.Text;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.inject.Inject;
 import java.time.temporal.ChronoUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @PluginDescriptor(
@@ -31,6 +35,8 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private DataManager dataManager;
     @Inject
     private ItemManager itemManager;
+    @Inject
+    private CollectionLogManager collectionLogManager;
     private int itemsDeposited = 0;
     private static final int SECONDS_BETWEEN_UPLOADS = 1;
     private static final int SECONDS_BETWEEN_INFREQUENT_DATA_CHANGES = 60;
@@ -39,6 +45,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private static final int DEPOSIT_EQUIPMENT = 12582918;
     private static final int CHATBOX_ENTERED = 681;
     private static final int GROUP_STORAGE_LOADER = 293;
+    private static final int COLLECTION_LOG_INVENTORYID = 620;
+    private static final Pattern COLLECTION_LOG_ITEM_PATTERN = Pattern.compile("New item added to your collection log: (.*)");
+
 
     @Override
     protected void startUp() throws Exception {
@@ -139,6 +148,11 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             dataManager.getEquipment().update(newEquipmentState);
         } else if (id == InventoryID.GROUP_STORAGE.getId()) {
             dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
+        } else if (id == COLLECTION_LOG_INVENTORYID) {
+            Widget collectionLogHeader = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
+            if (collectionLogHeader != null && !collectionLogHeader.isHidden()) {
+                collectionLogManager.updateCollection(new ItemContainerState(playerName, container, itemManager));
+            }
         }
     }
 
@@ -164,6 +178,21 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private void onInteractingChanged(InteractingChanged event) {
         if (event.getSource() != client.getLocalPlayer()) return;
         updateInteracting();
+    }
+
+    @Subscribe
+    private void onChatMessage(ChatMessage chatMessage) {
+        if (doNotUseThisData())
+            return;
+        if (chatMessage.getType() != ChatMessageType.GAMEMESSAGE) return;
+
+        Matcher matcher = COLLECTION_LOG_ITEM_PATTERN.matcher(chatMessage.getMessage());
+        if (matcher.find()) {
+            String itemName = Text.removeTags(matcher.group(1));
+            if (!StringUtils.isBlank(itemName)) {
+                collectionLogManager.updateNewItem(itemName);
+            }
+        }
     }
 
     private void itemsMayHaveBeenDeposited() {

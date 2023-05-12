@@ -25,6 +25,8 @@ public class DataManager {
     private Gson gson;
     @Inject
     private OkHttpClient okHttpClient;
+    @Inject
+    private CollectionLogManager collectionLogManager;
     private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final String USER_AGENT = "GroupIronmenTracker/1.4 " + "RuneLite/" + RuneLiteProperties.getVersion();
@@ -100,10 +102,12 @@ public class DataManager {
             deposited.consumeState(updates);
             seedVault.consumeState(updates);
             achievementDiary.consumeState(updates);
+            collectionLogManager.consumeCollections(updates);
 
             if (updates.size() > 1) {
                 try {
                     RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
+                    // log.info("{}", gson.toJson(updates));
                     Request request = new Request.Builder()
                             .url(url)
                             .header("Authorization", groupToken)
