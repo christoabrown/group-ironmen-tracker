@@ -127,7 +127,13 @@ public class ItemContainerState implements ConsumableState {
 
     @Override
     public Object get() {
-        return items;
+        List<Integer> result = new ArrayList<>(items.size() * 2);
+
+        for (ItemContainerItem item : items) {
+            result.add(item.getId());
+            result.add(item.getQuantity());
+        }
+        return result;
     }
 
     @Override

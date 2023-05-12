@@ -3,8 +3,7 @@ package men.groupiron;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SkillState implements ConsumableState {
     private final Map<String, Integer> skillXpMap;
@@ -20,7 +19,32 @@ public class SkillState implements ConsumableState {
 
     @Override
     public Object get() {
-        return this.skillXpMap;
+        return new int[]{
+                skillXpMap.get("Agility"),
+                skillXpMap.get("Attack"),
+                skillXpMap.get("Construction"),
+                skillXpMap.get("Cooking"),
+                skillXpMap.get("Crafting"),
+                skillXpMap.get("Defence"),
+                skillXpMap.get("Farming"),
+                skillXpMap.get("Firemaking"),
+                skillXpMap.get("Fishing"),
+                skillXpMap.get("Fletching"),
+                skillXpMap.get("Herblore"),
+                skillXpMap.get("Hitpoints"),
+                skillXpMap.get("Hunter"),
+                skillXpMap.get("Magic"),
+                skillXpMap.get("Mining"),
+                skillXpMap.get("Overall"),
+                skillXpMap.get("Prayer"),
+                skillXpMap.get("Ranged"),
+                skillXpMap.get("Runecraft"),
+                skillXpMap.get("Slayer"),
+                skillXpMap.get("Smithing"),
+                skillXpMap.get("Strength"),
+                skillXpMap.get("Thieving"),
+                skillXpMap.get("Woodcutting")
+        };
     }
 
     @Override

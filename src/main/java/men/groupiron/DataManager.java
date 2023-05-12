@@ -107,7 +107,7 @@ public class DataManager {
             if (updates.size() > 1) {
                 try {
                     RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
-                    // log.info("{}", gson.toJson(updates));
+                    log.info("{}", gson.toJson(updates));
                     Request request = new Request.Builder()
                             .url(url)
                             .header("Authorization", groupToken)
@@ -118,10 +118,10 @@ public class DataManager {
 
                     try (Response response = call.execute()) {
                         if (!response.isSuccessful()) {
-                            // log.error(response.body().string());
+                            log.error(response.body().string());
                             skipNextNAttempts = 10;
                             if (response.code() == 401) {
-                                // log.error("User not authorized to submit player data with current settings.");
+                                log.error("User not authorized to submit player data with current settings.");
                                 isMemberInGroup = false;
                             }
 
@@ -129,7 +129,7 @@ public class DataManager {
                         }
                     }
                 } catch (Exception _error) {
-                    // log.error(_error.toString());
+                    log.error(_error.toString());
                     skipNextNAttempts = 10;
                     restoreStateIfNothingUpdated();
                 }

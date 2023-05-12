@@ -27,7 +27,12 @@ public class RunePouchState implements ConsumableState {
 
     @Override
     public Object get() {
-        return new ItemContainerItem[]{rune1, rune2, rune3, rune4};
+        return new int[] {
+                rune1.getId(), rune1.getQuantity(),
+                rune2.getId(), rune2.getQuantity(),
+                rune3.getId(), rune3.getQuantity(),
+                rune4.getId(), rune4.getQuantity()
+        };
     }
 
     @Override

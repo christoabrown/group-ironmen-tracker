@@ -3,24 +3,30 @@ package men.groupiron;
 import net.runelite.api.Client;
 import net.runelite.api.Quest;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class QuestState implements ConsumableState {
-    private final Map<String, net.runelite.api.QuestState> questStateMap;
+    private final Map<Integer, net.runelite.api.QuestState> questStateMap;
     private transient final String playerName;
+    private List<Integer> sortedQuestIds = Arrays.stream(Quest.values()).map(Quest::getId).sorted().collect(Collectors.toList());
 
     public QuestState(String playerName, Client client) {
         this.playerName = playerName;
         this.questStateMap = new HashMap<>();
         for (Quest quest : Quest.values()) {
-            questStateMap.put(String.valueOf(quest.getId()), quest.getState(client));
+            questStateMap.put(quest.getId(), quest.getState(client));
         }
     }
 
     @Override
     public Object get() {
-        return questStateMap;
+        List<Integer> result = new ArrayList<>(questStateMap.size());
+        for (Integer questId : sortedQuestIds) {
+            result.add(questStateMap.get(questId).ordinal());
+        }
+
+        return result;
     }
 
     @Override
@@ -35,7 +41,7 @@ public class QuestState implements ConsumableState {
 
         QuestState other = (QuestState) o;
         for (Quest quest : Quest.values()) {
-            String questId = String.valueOf(quest.getId());
+            Integer questId = quest.getId();
             if (questStateMap.get(questId) != other.questStateMap.get(questId)) {
                 return false;
             }

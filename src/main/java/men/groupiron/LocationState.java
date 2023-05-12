@@ -21,7 +21,7 @@ public class LocationState implements ConsumableState {
 
     @Override
     public Object get() {
-        return this;
+        return new int[] { x, y, plane };
     }
 
     @Override

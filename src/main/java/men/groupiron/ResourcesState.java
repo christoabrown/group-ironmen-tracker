@@ -55,7 +55,12 @@ public class ResourcesState implements ConsumableState {
 
     @Override
     public Object get() {
-        return this;
+        return new int[] {
+                hitpoints.current, hitpoints.max,
+                prayer.current, prayer.max,
+                energy.current, energy.max,
+                world
+        };
     }
 
     @Override
