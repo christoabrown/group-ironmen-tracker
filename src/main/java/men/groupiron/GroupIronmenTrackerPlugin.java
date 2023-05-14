@@ -48,7 +48,6 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private static final int COLLECTION_LOG_INVENTORYID = 620;
     private static final Pattern COLLECTION_LOG_ITEM_PATTERN = Pattern.compile("New item added to your collection log: (.*)");
 
-
     @Override
     protected void startUp() throws Exception {
         log.info("Group Ironmen Tracker started!");
@@ -149,10 +148,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         } else if (id == InventoryID.GROUP_STORAGE.getId()) {
             dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
         } else if (id == COLLECTION_LOG_INVENTORYID) {
-            Widget collectionLogHeader = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
-            if (collectionLogHeader != null && !collectionLogHeader.isHidden()) {
-                collectionLogManager.updateCollection(new ItemContainerState(playerName, container, itemManager));
-            }
+            collectionLogManager.updateCollection(new ItemContainerState(playerName, container, itemManager));
         }
     }
 

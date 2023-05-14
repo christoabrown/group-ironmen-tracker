@@ -2,13 +2,15 @@ package men.groupiron;
 
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.widgets.Widget;
+import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.util.Text;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Singleton
@@ -16,27 +18,63 @@ public class CollectionLogManager {
     @Inject
     Client client;
 
-    private final Map<Integer, Map<Integer, DataState>> collections = new HashMap<>();
+    private final Map<String, DataState> collections = new HashMap<>();
     private String playerName;
-    private Set<String> newItems = new HashSet<>();
+    private Set<String> consumedNewItems = null;
+    private Set<String> newItems = null;
     private final int collectionLogTabVarbit = 6905;
-    private final int collectionLogPageVarbit = 6906;
+    static final Pattern COLLECTION_LOG_COUNT_PATTERN = Pattern.compile(".+:(.+)");
 
     public void updateCollection(ItemContainerState containerState) {
-        if (!containerState.isEmpty()) {
-            int tab = client.getVarbitValue(collectionLogTabVarbit);
-            int page = client.getVarbitValue(collectionLogPageVarbit);
-            Map<Integer, DataState> collectionTab = collections.computeIfAbsent(tab, k -> new HashMap<>());
-            DataState pageDataState = collectionTab.computeIfAbsent(page, k -> new DataState(String.valueOf(page), false));
-            pageDataState.update(containerState);
+        Widget collectionLogHeader = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_HEADER);
+        if (collectionLogHeader == null || collectionLogHeader.isHidden()) return;
+        Widget[] collectionLogHeaderChildren = collectionLogHeader.getChildren();
+        if (collectionLogHeaderChildren == null || collectionLogHeaderChildren.length == 0) return;
+
+        // Get the completion count information from the lines in the collection log header
+        List<Integer> completionCounts = new ArrayList<>();
+        for (int i = 2; i < collectionLogHeaderChildren.length; ++i) {
+            String text = Text.removeTags(collectionLogHeaderChildren[i].getText());
+            Matcher matcher = COLLECTION_LOG_COUNT_PATTERN.matcher(text);
+            if (matcher.find()) {
+                try {
+                    Integer count = Integer.valueOf(matcher.group(1).trim());
+                    completionCounts.add(count);
+                } catch(Exception ignored) {}
+            }
         }
-        // log.info("collections={}", collections);
+
+        // Make sure the collection log page being shown is where these items came from
+        if (areItemsOnPage(containerState)) {
+            String pageName = Text.removeTags(collectionLogHeaderChildren[0].getText()).trim();
+            // Sending the tab index just in case the page name is not unique across them
+            int tabIdx = client.getVarbitValue(collectionLogTabVarbit);
+            DataState pageDataState = collections.computeIfAbsent(pageName + tabIdx, k -> new DataState());
+
+            pageDataState.update(new CollectionPageState(tabIdx, pageName, containerState, completionCounts));
+        }
+    }
+
+    private boolean areItemsOnPage(ItemContainerState itemContainerState) {
+        Widget collectionLogItems = client.getWidget(WidgetInfo.COLLECTION_LOG_ENTRY_ITEMS);
+        if (collectionLogItems == null || collectionLogItems.isHidden()) return false;
+        Widget[] itemWidgets = collectionLogItems.getChildren();
+        if (itemWidgets == null) return false;
+
+        Set<Integer> containerItemIds = new HashSet<>(itemContainerState.getItemMap().keySet());
+        Set<Integer> itemIdsOnPage = new HashSet<>();
+        for (Widget itemWidget : itemWidgets) {
+            itemIdsOnPage.add(itemWidget.getItemId());
+        }
+
+        return itemIdsOnPage.containsAll(containerItemIds);
     }
 
     public synchronized void updateNewItem(String item) {
         String playerName = client.getLocalPlayer().getName();
         if (playerName != null) {
-            if (!playerName.equals(this.playerName)) {
+            if (!playerName.equals(this.playerName) || newItems == null) {
+                this.playerName = playerName;
                 newItems = new HashSet<>();
             }
             newItems.add(item.trim());
@@ -44,26 +82,23 @@ public class CollectionLogManager {
     }
 
     public synchronized void consumeNewItems(Map<String, Object> output) {
-        if (output.get("name").equals(this.playerName)) {
+        if (newItems != null && output.get("name").equals(this.playerName)) {
             output.put("collection_log_new", newItems);
         }
-        newItems = new HashSet<>();
+        log.info("{}", newItems);
+        consumedNewItems = newItems;
+        newItems = null;
     }
 
     public void consumeCollections(Map<String, Object> output) {
-        Map<String, Object> collectionLogOutput = new HashMap<>();
+        if (collections.isEmpty()) return;
+        List<Object> collectionLogOutput = new ArrayList<>();
+        String whoIsUpdating = (String) output.get("name");
 
-        for (Integer tab : collections.keySet()) {
-            Map<String, Object> collectionTabOutput = new HashMap<>();
-            Map<Integer, DataState> collectionTab = collections.get(tab);
-            for (Integer page : collectionTab.keySet()) {
-                DataState pageDataState = collectionTab.get(page);
-                pageDataState.consumeState((String) output.get("name"), collectionTabOutput);
-            }
-
-            // log.info("collectionTabOutput={}", collectionTabOutput);
-            if (!collectionTabOutput.isEmpty()) {
-                collectionLogOutput.put(String.valueOf(tab), collectionTabOutput);
+        for (DataState pageDataState : collections.values()) {
+            Object result = pageDataState.consumeState(whoIsUpdating);
+            if (result != null) {
+                collectionLogOutput.add(result);
             }
         }
 
@@ -71,5 +106,19 @@ public class CollectionLogManager {
         if (!collectionLogOutput.isEmpty()) {
             output.put("collection_log", collectionLogOutput);
         }
+    }
+
+    public void restoreCollections() {
+        for (DataState pageDataState : collections.values()) {
+            pageDataState.restoreState();
+        }
+    }
+
+    public synchronized void restoreNewCollections() {
+        if (consumedNewItems == null) return;
+        for (String item : consumedNewItems) {
+            updateNewItem(item);
+        }
+        consumedNewItems = null;
     }
 }

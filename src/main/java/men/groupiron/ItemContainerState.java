@@ -125,8 +125,7 @@ public class ItemContainerState implements ConsumableState {
         return false;
     }
 
-    @Override
-    public Object get() {
+    public List<Integer> asFlatList() {
         List<Integer> result = new ArrayList<>(items.size() * 2);
 
         for (ItemContainerItem item : items) {
@@ -134,6 +133,11 @@ public class ItemContainerState implements ConsumableState {
             result.add(item.getQuantity());
         }
         return result;
+    }
+
+    @Override
+    public Object get() {
+        return asFlatList();
     }
 
     @Override

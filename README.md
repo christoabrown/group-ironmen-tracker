@@ -12,10 +12,10 @@ This plugin tracks information about your group ironman player and sends it to a
 * Quest completion status
 * Health and position of npcs the player is interacting with
 * Achievement Diaries
+* Collection Log
 
 ![](https://i.imgur.com/1Mdz8RU.png)
 ![](https://i.imgur.com/Rs0ruRE.png)
-![](https://i.imgur.com/qxat3IZ.png)
 
 ## Setup
 Each group member that you want to track will need to install the plugin. Just one person will go to the site and create a group, the credentials it provides is shared with your group.

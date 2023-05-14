@@ -29,7 +29,7 @@ public class DataManager {
     private CollectionLogManager collectionLogManager;
     private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String USER_AGENT = "GroupIronmenTracker/1.4 " + "RuneLite/" + RuneLiteProperties.getVersion();
+    private static final String USER_AGENT = "GroupIronmenTracker/1.5 " + "RuneLite/" + RuneLiteProperties.getVersion();
     private boolean isMemberInGroup = false;
     private int skipNextNAttempts = 0;
 
@@ -103,11 +103,12 @@ public class DataManager {
             seedVault.consumeState(updates);
             achievementDiary.consumeState(updates);
             collectionLogManager.consumeCollections(updates);
+            collectionLogManager.consumeNewItems(updates);
 
             if (updates.size() > 1) {
                 try {
                     RequestBody body = RequestBody.create(JSON, gson.toJson(updates));
-                    log.info("{}", gson.toJson(updates));
+                    // log.info("{}", gson.toJson(updates));
                     Request request = new Request.Builder()
                             .url(url)
                             .header("Authorization", groupToken)
@@ -118,10 +119,10 @@ public class DataManager {
 
                     try (Response response = call.execute()) {
                         if (!response.isSuccessful()) {
-                            log.error(response.body().string());
+                            // log.error(response.body().string());
                             skipNextNAttempts = 10;
                             if (response.code() == 401) {
-                                log.error("User not authorized to submit player data with current settings.");
+                                // log.error("User not authorized to submit player data with current settings.");
                                 isMemberInGroup = false;
                             }
 
@@ -129,7 +130,7 @@ public class DataManager {
                         }
                     }
                 } catch (Exception _error) {
-                    log.error(_error.toString());
+                    // log.error(_error.toString());
                     skipNextNAttempts = 10;
                     restoreStateIfNothingUpdated();
                 }
@@ -172,6 +173,8 @@ public class DataManager {
         deposited.restoreState();
         seedVault.restoreState();
         achievementDiary.restoreState();
+        collectionLogManager.restoreCollections();
+        collectionLogManager.restoreNewCollections();
     }
 
     private String baseUrl() {
