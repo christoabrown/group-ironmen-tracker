@@ -85,7 +85,6 @@ public class CollectionLogManager {
         if (newItems != null && output.get("name").equals(this.playerName)) {
             output.put("collection_log_new", newItems);
         }
-        log.info("{}", newItems);
         consumedNewItems = newItems;
         newItems = null;
     }
