@@ -8,6 +8,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
@@ -37,6 +38,8 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private ItemManager itemManager;
     @Inject
     private CollectionLogManager collectionLogManager;
+    @Inject
+    ClientThread clientThread;
     private int itemsDeposited = 0;
     private static final int SECONDS_BETWEEN_UPLOADS = 1;
     private static final int SECONDS_BETWEEN_INFREQUENT_DATA_CHANGES = 60;
@@ -47,9 +50,13 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private static final int GROUP_STORAGE_LOADER = 293;
     private static final int COLLECTION_LOG_INVENTORYID = 620;
     private static final Pattern COLLECTION_LOG_ITEM_PATTERN = Pattern.compile("New item added to your collection log: (.*)");
+    private boolean notificationStarted = false;
 
     @Override
     protected void startUp() throws Exception {
+        clientThread.invokeLater(() -> {
+            collectionLogManager.initCollectionLog();
+        });
         log.info("Group Ironmen Tracker started!");
     }
 
@@ -188,6 +195,27 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             if (!StringUtils.isBlank(itemName)) {
                 collectionLogManager.updateNewItem(itemName);
             }
+        }
+    }
+
+    @Subscribe
+    public void onScriptPreFired(ScriptPreFired scriptPreFired)
+    {
+        switch (scriptPreFired.getScriptId())
+        {
+            case ScriptID.NOTIFICATION_START:
+                notificationStarted = true;
+                break;
+            case ScriptID.NOTIFICATION_DELAY:
+                if (!notificationStarted) return;
+                String topText = client.getVarcStrValue(VarClientStr.NOTIFICATION_TOP_TEXT);
+                String bottomText = client.getVarcStrValue(VarClientStr.NOTIFICATION_BOTTOM_TEXT);
+                if (topText.equalsIgnoreCase("Collection log")) {
+                    String entry = Text.removeTags(bottomText).substring("New item:".length());
+                    collectionLogManager.updateNewItem(entry);
+                }
+                notificationStarted = false;
+                break;
         }
     }
 
