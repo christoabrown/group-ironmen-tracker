@@ -133,29 +133,31 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         final int id = event.getContainerId();
         ItemContainer container = event.getItemContainer();
 
-        if (id == InventoryID.BANK.getId()) {
-            dataManager.getDeposited().reset();
-            dataManager.getBank().update(new ItemContainerState(playerName, container, itemManager));
-        } else if (id == InventoryID.SEED_VAULT.getId()) {
-            dataManager.getSeedVault().update(new ItemContainerState(playerName, container, itemManager));
-        } else if (id == InventoryID.INVENTORY.getId()) {
+        if (id == COLLECTION_LOG_INVENTORYID) {
+            collectionLogManager.updateCollection(new ItemContainerState(playerName, container, itemManager));
+        }
+
+        if (id == InventoryID.INVENTORY.getId() && !config.hideInventoryContents()) {
             ItemContainerState newInventoryState = new ItemContainerState(playerName, container, itemManager, 28);
             if (itemsDeposited > 0) {
                 updateDeposited(newInventoryState, (ItemContainerState) dataManager.getInventory().mostRecentState());
             }
-
             dataManager.getInventory().update(newInventoryState);
-        } else if (id == InventoryID.EQUIPMENT.getId()) {
+        } else if (id == InventoryID.EQUIPMENT.getId() && !config.hideEquipmentContents()){
             ItemContainerState newEquipmentState = new ItemContainerState(playerName, container, itemManager, 14);
             if (itemsDeposited > 0) {
                 updateDeposited(newEquipmentState, (ItemContainerState) dataManager.getEquipment().mostRecentState());
             }
-
             dataManager.getEquipment().update(newEquipmentState);
-        } else if (id == InventoryID.GROUP_STORAGE.getId()) {
+        } else if (id == InventoryID.BANK.getId() && !config.hideBankContents()) {
+            dataManager.getDeposited().reset();
+            dataManager.getBank().update(new ItemContainerState(playerName, container, itemManager));
+        } else if (id == InventoryID.SEED_VAULT.getId() && !config.hideSeedVaultContents()) {
+            dataManager.getSeedVault().update(new ItemContainerState(playerName, container, itemManager));
+        }
+
+        if (id == InventoryID.GROUP_STORAGE.getId()) {
             dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
-        } else if (id == COLLECTION_LOG_INVENTORYID) {
-            collectionLogManager.updateCollection(new ItemContainerState(playerName, container, itemManager));
         }
     }
 

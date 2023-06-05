@@ -15,6 +15,13 @@ public interface GroupIronmenTrackerConfig extends Config {
     String groupSection = "GroupSection";
 
     @ConfigSection(
+            name = "Player Config",
+            description = "Configure your container item sync settings",
+            position = 0
+    )
+    String playerSection = "PlayerSection";
+
+    @ConfigSection(
             name = "Self Hosted Config",
             description = "Configure your connection to a self hosted server",
             position = 1,
@@ -41,6 +48,46 @@ public interface GroupIronmenTrackerConfig extends Config {
     )
     default String authorizationToken() {
         return "";
+    }
+
+    @ConfigItem(
+            keyName = "hideBankContents",
+            name = "Hide bank contents",
+            description = "Toggle sharing of bank contents to the rest of the group",
+            section = playerSection
+    )
+    default boolean hideBankContents() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "hideSeedVaultContents",
+            name = "Hide seed vault contents",
+            description = "Toggle sharing of seed vault contents to the rest of the group",
+            section = playerSection
+    )
+    default boolean hideSeedVaultContents() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "hideInventoryContents",
+            name = "Hide inventory contents",
+            description = "Toggle sharing of inventory contents to the rest of the group",
+            section = playerSection
+    )
+    default boolean hideInventoryContents() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "hideEquipmentContents",
+            name = "Hide Equipment contents",
+            description = "Toggle sharing of Equipment contents to the rest of the group",
+            section = playerSection
+    )
+    default boolean hideEquipmentContents() {
+        return false;
     }
 
     @ConfigItem(
