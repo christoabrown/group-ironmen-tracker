@@ -216,7 +216,9 @@ public class DataManager {
             if (worldType == WorldType.SEASONAL ||
                     worldType == WorldType.DEADMAN ||
                     worldType == WorldType.TOURNAMENT_WORLD ||
-                    worldType == WorldType.PVP_ARENA) {
+                    worldType == WorldType.PVP_ARENA ||
+                    worldType == WorldType.BETA_WORLD ||
+                    worldType == WorldType.QUEST_SPEEDRUNNING) {
                 return true;
             }
         }
