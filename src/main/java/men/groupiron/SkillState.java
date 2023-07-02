@@ -1,10 +1,12 @@
 package men.groupiron;
 
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Skill;
 
 import java.util.*;
 
+@Slf4j
 public class SkillState implements ConsumableState {
     private final Map<String, Integer> skillXpMap;
     private transient final String playerName;
@@ -19,7 +21,7 @@ public class SkillState implements ConsumableState {
 
     @Override
     public Object get() {
-        return new int[]{
+        return new int[] {
                 skillXpMap.get("Agility"),
                 skillXpMap.get("Attack"),
                 skillXpMap.get("Construction"),
@@ -35,7 +37,6 @@ public class SkillState implements ConsumableState {
                 skillXpMap.get("Hunter"),
                 skillXpMap.get("Magic"),
                 skillXpMap.get("Mining"),
-                skillXpMap.get("Overall"),
                 skillXpMap.get("Prayer"),
                 skillXpMap.get("Ranged"),
                 skillXpMap.get("Runecraft"),
