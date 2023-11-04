@@ -106,9 +106,9 @@ public class CollectionLogManager {
 
         int tabIdx = client.getVarbitValue(collectionLogTabVarbit);
         int pageIdx = client.getVarbitValue(collectionLogPageVarbit);
+
         String pageName = getPageName(tabIdx, pageIdx);
-        // Make sure the collection log page being shown is where these items came from
-        if (!StringUtils.isBlank(pageName) && areItemsOnPage(pageName, containerState)) {
+        if (!StringUtils.isBlank(pageName)) {
             // Sending the tab index just in case the page name is not unique across them
             DataState pageDataState = collections.computeIfAbsent(pageName + tabIdx, k -> new DataState());
             pageDataState.update(new CollectionPageState(tabIdx, pageName, containerState, completionCounts));
@@ -119,14 +119,6 @@ public class CollectionLogManager {
         Map<Integer, String> x = pageNameLookup.get(tabIdx);
         if (x != null) return x.get(pageIdx);
         return null;
-    }
-
-    private boolean areItemsOnPage(String pageName, ItemContainerState itemContainerState) {
-        if (StringUtils.isBlank(pageName)) return false;
-        Set<Integer> itemIdsOnPage = pageItems.computeIfAbsent(pageName, k -> new HashSet<>());
-
-        Set<Integer> containerItemIds = new HashSet<>(itemContainerState.getItemMap().keySet());
-        return itemIdsOnPage.containsAll(containerItemIds);
     }
 
     public synchronized void updateNewItem(String item) {

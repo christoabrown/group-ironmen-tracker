@@ -29,7 +29,7 @@ public class DataManager {
     private CollectionLogManager collectionLogManager;
     private static final String PUBLIC_BASE_URL = "https://groupiron.men";
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-    private static final String USER_AGENT = "GroupIronmenTracker/1.5.2 " + "RuneLite/" + RuneLiteProperties.getVersion();
+    private static final String USER_AGENT = "GroupIronmenTracker/1.5.3 " + "RuneLite/" + RuneLiteProperties.getVersion();
     private boolean isMemberInGroup = false;
     private int skipNextNAttempts = 0;
 
@@ -173,8 +173,8 @@ public class DataManager {
         deposited.restoreState();
         seedVault.restoreState();
         achievementDiary.restoreState();
-        collectionLogManager.restoreCollections();
-        collectionLogManager.restoreNewCollections();
+        // collectionLogManager.restoreCollections();
+        // collectionLogManager.restoreNewCollections();
     }
 
     private String baseUrl() {
