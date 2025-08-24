@@ -90,6 +90,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         dataManager.getPosition().update(new LocationState(playerName, worldPoint));
 
         dataManager.getRunePouch().update(new RunePouchState(playerName, client));
+        dataManager.getQuiver().update(new QuiverState(playerName, client, itemManager));
     }
 
     @Schedule(
@@ -216,6 +217,20 @@ public class GroupIronmenTrackerPlugin extends Plugin {
                 }
                 notificationStarted = false;
                 break;
+        }
+    }
+
+    @Subscribe
+    public void onVarbitChanged(VarbitChanged event)
+    {
+        if (doNotUseThisData())
+            return;
+
+        final int varpId = event.getVarpId();
+        if (varpId == VarPlayer.DIZANAS_QUIVER_ITEM_ID || varpId == VarPlayer.DIZANAS_QUIVER_ITEM_COUNT)
+        {
+            String playerName = client.getLocalPlayer().getName();
+            dataManager.getQuiver().update(new QuiverState(playerName, client, itemManager));
         }
     }
 
