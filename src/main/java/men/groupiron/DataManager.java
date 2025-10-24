@@ -15,8 +15,6 @@ import java.util.Map;
 @Singleton
 public class DataManager {
     @Inject
-    Client client;
-    @Inject
     GroupIronmenTrackerConfig config;
     @Inject
     private CollectionLogManager collectionLogManager;
@@ -56,11 +54,9 @@ public class DataManager {
     @Getter
     private final DepositedItems deposited = new DepositedItems();
 
-    public void submitToApi() {
-        if (client.getLocalPlayer() == null || client.getLocalPlayer().getName() == null || isBadWorldType()) return;
+    public void submitToApi(String playerName) {
         if (skipNextNAttempts-- > 0) return;
 
-        String playerName = client.getLocalPlayer().getName();
         String groupToken = config.authorizationToken().trim();
 
         if (groupToken.length() > 0) {
@@ -179,21 +175,5 @@ public class DataManager {
         if (baseUrl == null || groupName == null) return null;
 
         return String.format("%s/api/group/%s/am-i-in-group?member_name=%s", baseUrl, groupName, playerName);
-    }
-
-    private boolean isBadWorldType() {
-        EnumSet<WorldType> worldTypes = client.getWorldType();
-        for (WorldType worldType : worldTypes) {
-            if (worldType == WorldType.SEASONAL ||
-                    worldType == WorldType.DEADMAN ||
-                    worldType == WorldType.TOURNAMENT_WORLD ||
-                    worldType == WorldType.PVP_ARENA ||
-                    worldType == WorldType.BETA_WORLD ||
-                    worldType == WorldType.QUEST_SPEEDRUNNING) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

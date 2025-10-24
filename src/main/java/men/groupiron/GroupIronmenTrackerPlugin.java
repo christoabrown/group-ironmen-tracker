@@ -13,6 +13,7 @@ import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.RuneScapeProfileType;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
@@ -82,7 +83,11 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             asynchronous = true
     )
     public void submitToApi() {
-        dataManager.submitToApi();
+        if(doNotUseThisData())
+            return;
+
+        String playerName = client.getLocalPlayer().getName();
+        dataManager.submitToApi(playerName);
     }
 
     @Schedule(
@@ -118,7 +123,8 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
     @Subscribe
     public void onVarbitChanged(VarbitChanged event) {
-        if (doNotUseThisData()) return;
+        if (doNotUseThisData())
+            return;
 
         final int varpId = event.getVarpId();
         if (varpId == VarPlayerID.DIZANAS_QUIVER_TEMP_AMMO || varpId == VarPlayerID.DIZANAS_QUIVER_TEMP_AMMO_AMOUNT) {
@@ -129,6 +135,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
     @Subscribe
     public void onGameTick(GameTick gameTick) {
+        if(doNotUseThisData())
+            return;
+
         --itemsDeposited;
         updateInteracting();
 
@@ -184,6 +193,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
     @Subscribe
     private void onScriptPostFired(ScriptPostFired event) {
+        if(doNotUseThisData())
+            return;
+
         if (event.getScriptId() == CHATBOX_ENTERED && client.getWidget(InterfaceID.BankDepositbox.INVENTORY) != null) {
             itemsMayHaveBeenDeposited();
         }
@@ -191,6 +203,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
     @Subscribe
     private void onMenuOptionClicked(MenuOptionClicked event) {
+        if(doNotUseThisData())
+            return;
+
         final int param1 = event.getParam1();
         final MenuAction menuAction = event.getMenuAction();
         if (menuAction == MenuAction.CC_OP) {
@@ -202,6 +217,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
     @Subscribe
     private void onInteractingChanged(InteractingChanged event) {
+        if(doNotUseThisData())
+            return;
+
         if (event.getSource() != client.getLocalPlayer()) return;
         updateInteracting();
     }
@@ -210,6 +228,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private void onChatMessage(ChatMessage chatMessage) {
         if (doNotUseThisData())
             return;
+
         if (chatMessage.getType() != ChatMessageType.GAMEMESSAGE) return;
 
         Matcher matcher = COLLECTION_LOG_ITEM_PATTERN.matcher(chatMessage.getMessage());
@@ -224,6 +243,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     @Subscribe
     public void onScriptPreFired(ScriptPreFired scriptPreFired)
     {
+        if(doNotUseThisData())
+            return;
+
         switch (scriptPreFired.getScriptId())
         {
             case ScriptID.NOTIFICATION_START:
@@ -271,8 +293,12 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         dataManager.getDeposited().update(deposited);
     }
 
+    /**
+     * A guard blocking client callbacks that may write invalid state, such as when the player is not logged in to a main-game profile.
+     */
     private boolean doNotUseThisData() {
-        return client.getGameState() != GameState.LOGGED_IN || client.getLocalPlayer() == null;
+        boolean isStandardProfile = RuneScapeProfileType.getCurrent(client) == RuneScapeProfileType.STANDARD;
+        return client.getGameState() != GameState.LOGGED_IN || client.getLocalPlayer() == null || !isStandardProfile;
     }
 
     @Provides
