@@ -97,8 +97,17 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         dataManager.getResources().update(new ResourcesState(playerName, client));
 
         LocalPoint localPoint = player.getLocalLocation();
-        WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, localPoint);
-        dataManager.getPosition().update(new LocationState(playerName, worldPoint));
+        WorldView worldView = player.getWorldView();
+        int worldViewId = worldView.getId();
+        boolean isOnBoat = worldViewId != -1;
+        WorldPoint worldPoint;
+        if (isOnBoat) {
+            WorldEntity worldEntity = client.getTopLevelWorldView().worldEntities().byIndex(worldViewId);
+            worldPoint = WorldPoint.fromLocalInstance(client, worldEntity.getLocalLocation());
+        } else {
+            worldPoint = WorldPoint.fromLocalInstance(client, localPoint);
+        }
+        dataManager.getPosition().update(new LocationState(playerName, worldPoint, isOnBoat));
 
         dataManager.getRunePouch().update(new RunePouchState(playerName, client));
         dataManager.getQuiver().update(new QuiverState(playerName, client, itemManager));

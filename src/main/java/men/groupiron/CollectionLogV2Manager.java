@@ -35,8 +35,4 @@ public class CollectionLogV2Manager {
             clogItems.clear();
         }
     }
-
-    public synchronized Map<Integer, Integer> snapshotItems() {
-        return Collections.unmodifiableMap(new HashMap<>(clogItems));
-    }
 }

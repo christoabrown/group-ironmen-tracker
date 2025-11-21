@@ -23,7 +23,7 @@ public class InteractingState implements ConsumableState {
         this.name = actor.getName();
 
         WorldPoint worldPoint = WorldPoint.fromLocalInstance(client, actor.getLocalLocation());
-        this.location = new LocationState(playerName, worldPoint);
+        this.location = new LocationState(playerName, worldPoint, false);
     }
 
     @Override

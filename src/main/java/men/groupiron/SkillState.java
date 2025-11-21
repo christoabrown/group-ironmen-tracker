@@ -44,7 +44,8 @@ public class SkillState implements ConsumableState {
                 skillXpMap.get("Smithing"),
                 skillXpMap.get("Strength"),
                 skillXpMap.get("Thieving"),
-                skillXpMap.get("Woodcutting")
+                skillXpMap.get("Woodcutting"),
+                skillXpMap.get("Sailing")
         };
     }
 
