@@ -1,7 +1,9 @@
 package men.groupiron;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +24,12 @@ public class CollectionLogV2Manager {
 
     public synchronized void consumeClogItems(Map<String, Object> updates) {
         if (clogItems.isEmpty()) return;
-        updates.put("collection_log_v2", new HashMap<>(clogItems));
+        List<Integer> result = new ArrayList<>(clogItems.size() * 2);
+        for (Map.Entry<Integer, Integer> item : clogItems.entrySet()) {
+            result.add(item.getKey());
+            result.add(item.getValue());
+        }
+        updates.put("collection_log_v2", result);
     }
 
     public synchronized void clearClogItems() {

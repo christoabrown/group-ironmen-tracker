@@ -40,8 +40,6 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     @Inject
     private ItemManager itemManager;
     @Inject
-    private CollectionLogManager collectionLogManager;
-    @Inject
     private CollectionLogV2Manager collectionLogV2Manager;
     @Inject
     private CollectionLogWidgetSubscriber collectionLogWidgetSubscriber;
@@ -57,15 +55,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private static final int DEPOSIT_EQUIPMENT = 12582918;
     private static final int CHATBOX_ENTERED = 681;
     private static final int GROUP_STORAGE_LOADER = 293;
-    private static final int COLLECTION_LOG_INVENTORYID = 620;
-    private static final Pattern COLLECTION_LOG_ITEM_PATTERN = Pattern.compile("New item added to your collection log: (.*)");
-    private boolean notificationStarted = false;
 
     @Override
     protected void startUp() throws Exception {
-        clientThread.invokeLater(() -> {
-            collectionLogManager.initCollectionLog();
-        });
         collectionLogWidgetSubscriber.startUp();
         log.info("Group Ironmen Tracker started!");
     }
@@ -186,8 +178,6 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             dataManager.getEquipment().update(newEquipmentState);
         } else if (id == InventoryID.INV_GROUP_TEMP) {
             dataManager.getSharedBank().update(new ItemContainerState(playerName, container, itemManager));
-        } else if (id == COLLECTION_LOG_INVENTORYID) {
-            collectionLogManager.updateCollection(new ItemContainerState(playerName, container, itemManager));
         }
     }
 
@@ -213,42 +203,6 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private void onInteractingChanged(InteractingChanged event) {
         if (event.getSource() != client.getLocalPlayer()) return;
         updateInteracting();
-    }
-
-    @Subscribe
-    private void onChatMessage(ChatMessage chatMessage) {
-        if (doNotUseThisData())
-            return;
-        if (chatMessage.getType() != ChatMessageType.GAMEMESSAGE) return;
-
-        Matcher matcher = COLLECTION_LOG_ITEM_PATTERN.matcher(chatMessage.getMessage());
-        if (matcher.find()) {
-            String itemName = Text.removeTags(matcher.group(1));
-            if (!StringUtils.isBlank(itemName)) {
-                collectionLogManager.updateNewItem(itemName);
-            }
-        }
-    }
-
-    @Subscribe
-    public void onScriptPreFired(ScriptPreFired scriptPreFired)
-    {
-        switch (scriptPreFired.getScriptId())
-        {
-            case ScriptID.NOTIFICATION_START:
-                notificationStarted = true;
-                break;
-            case ScriptID.NOTIFICATION_DELAY:
-                if (!notificationStarted) return;
-                String topText = client.getVarcStrValue(VarClientID.NOTIFICATION_TITLE);
-                String bottomText = client.getVarcStrValue(VarClientID.NOTIFICATION_MAIN);
-                if (topText.equalsIgnoreCase("Collection log")) {
-                    String entry = Text.removeTags(bottomText).substring("New item:".length());
-                    collectionLogManager.updateNewItem(entry);
-                }
-                notificationStarted = false;
-                break;
-        }
     }
 
     private void itemsMayHaveBeenDeposited() {

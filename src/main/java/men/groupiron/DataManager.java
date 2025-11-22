@@ -19,8 +19,6 @@ public class DataManager {
     @Inject
     GroupIronmenTrackerConfig config;
     @Inject
-    private CollectionLogManager collectionLogManager;
-    @Inject
     private CollectionLogV2Manager collectionLogV2Manager;
     @Inject
     private HttpRequestService httpRequestService;
@@ -99,8 +97,6 @@ public class DataManager {
             deposited.consumeState(updates);
             seedVault.consumeState(updates);
             achievementDiary.consumeState(updates);
-            collectionLogManager.consumeCollections(updates);
-            collectionLogManager.consumeNewItems(updates);
             collectionLogV2Manager.consumeClogItems(updates);
 
             if (updates.size() > 1) {
@@ -146,8 +142,6 @@ public class DataManager {
         deposited.restoreState();
         seedVault.restoreState();
         achievementDiary.restoreState();
-        // collectionLogManager.restoreCollections();
-        // collectionLogManager.restoreNewCollections();
     }
 
     private String baseUrl() {

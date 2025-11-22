@@ -11,7 +11,7 @@ public class LocationState implements ConsumableState {
     @Getter
     private final int plane;
     @Getter
-    private final boolean isOnBoat;
+    private transient final boolean isOnBoat;
     private transient final String playerName;
 
     LocationState(String playerName, WorldPoint worldPoint, boolean isOnBoat) {
