@@ -11,6 +11,7 @@ import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.VarClientID;
 import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.widgets.Widget;
+import net.runelite.api.WorldView;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -91,7 +92,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
         LocalPoint localPoint = player.getLocalLocation();
         WorldView worldView = player.getWorldView();
         int worldViewId = worldView.getId();
-        boolean isOnBoat = worldViewId != -1;
+        boolean isOnBoat = worldViewId != WorldView.TOPLEVEL;
         WorldPoint worldPoint;
         if (isOnBoat) {
             WorldEntity worldEntity = client.getTopLevelWorldView().worldEntities().byIndex(worldViewId);
