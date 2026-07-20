@@ -55,6 +55,8 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     @Override
     protected void shutDown() throws Exception {
         collectionLogWidgetSubscriber.shutDown();
+        cachePotions = false;
+        potionStoreVars = null;
         log.info("Group Ironmen Tracker stopped!");
     }
 
@@ -194,6 +196,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
     @Subscribe
     private void onScriptPreFired(ScriptPreFired event) {
+        if (doNotUseThisData()) return;
         if (event.getScriptId() == ScriptID.BANKMAIN_FINISHBUILDING) {
             cachePotions = true;
         }
