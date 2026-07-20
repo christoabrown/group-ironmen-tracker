@@ -8,24 +8,20 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.gameval.InterfaceID;
-import net.runelite.api.gameval.VarClientID;
 import net.runelite.api.gameval.VarPlayerID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.WorldView;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
-import net.runelite.client.util.Text;
-import org.apache.commons.lang3.StringUtils;
-
 import javax.inject.Inject;
 import java.time.temporal.ChronoUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 @Slf4j
 @PluginDescriptor(
@@ -35,20 +31,14 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     @Inject
     private Client client;
     @Inject
-    private GroupIronmenTrackerConfig config;
-    @Inject
     private DataManager dataManager;
     @Inject
     private ItemManager itemManager;
     @Inject
-    private CollectionLogV2Manager collectionLogV2Manager;
-    @Inject
     private CollectionLogWidgetSubscriber collectionLogWidgetSubscriber;
-    @Inject
-    private HttpRequestService httpRequestService;
-    @Inject
-    ClientThread clientThread;
     private int itemsDeposited = 0;
+    private boolean cachePotions = false;
+    private Set<Integer> potionStoreVars;
     private static final int SECONDS_BETWEEN_UPLOADS = 1;
     private static final int SECONDS_BETWEEN_INFREQUENT_DATA_CHANGES = 60;
     private static final int DEPOSIT_ITEM = 12582914;
@@ -127,6 +117,25 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             String playerName = client.getLocalPlayer().getName();
             dataManager.getQuiver().update(new QuiverState(playerName, client, itemManager));
         }
+
+        if (potionStoreVars != null && potionStoreVars.contains(varpId)) {
+            cachePotions = true;
+        }
+    }
+
+    @Subscribe
+    public void onClientTick(ClientTick event) {
+        if (cachePotions) {
+            cachePotions = false;
+            updatePotionStorage();
+
+            Widget w = client.getWidget(InterfaceID.Bankmain.POTIONSTORE_ITEMS);
+            if (w != null && potionStoreVars == null) {
+                int[] trigger = w.getVarTransmitTrigger();
+                potionStoreVars = new HashSet<>();
+                Arrays.stream(trigger).forEach(potionStoreVars::add);
+            }
+        }
     }
 
     @Subscribe
@@ -183,6 +192,13 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     }
 
     @Subscribe
+    private void onScriptPreFired(ScriptPreFired event) {
+        if (event.getScriptId() == ScriptID.BANKMAIN_FINISHBUILDING) {
+            cachePotions = true;
+        }
+    }
+
+    @Subscribe
     private void onScriptPostFired(ScriptPostFired event) {
         if (event.getScriptId() == CHATBOX_ENTERED && client.getWidget(InterfaceID.BankDepositbox.INVENTORY) != null) {
             itemsMayHaveBeenDeposited();
@@ -233,6 +249,17 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     private void updateDeposited(ItemContainerState newState, ItemContainerState previousState) {
         ItemContainerState deposited = newState.whatGotRemoved(previousState);
         dataManager.getDeposited().update(deposited);
+    }
+
+    private void updatePotionStorage() {
+        Player player = client.getLocalPlayer();
+
+        if (player != null) {
+            PotionStorageState potionStorageState = PotionStorageState.fromClient(player.getName(), client, itemManager);
+            if (potionStorageState != null) {
+                dataManager.getPotionStorage().update(potionStorageState);
+            }
+        }
     }
 
     private boolean doNotUseThisData() {

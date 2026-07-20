@@ -6,6 +6,9 @@ repositories {
 	mavenLocal()
 	maven {
 		url = 'https://repo.runelite.net'
+		content {
+			includeGroupByRegex("net\\.runelite.*")
+		}
 	}
 	mavenCentral()
 }
@@ -15,8 +18,8 @@ def runeLiteVersion = 'latest.release'
 dependencies {
 	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
 
-	compileOnly 'org.projectlombok:lombok:1.18.20'
-	annotationProcessor 'org.projectlombok:lombok:1.18.20'
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
 	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
 	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
@@ -33,10 +36,10 @@ dependencies {
 
 group = 'men.groupiron'
 version = '1.6.1'
-sourceCompatibility = JavaVersion.VERSION_11
 
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
+	options.release.set(11)
 }
 
 tasks.withType(Test).configureEach {
@@ -52,4 +55,3 @@ tasks.withType(Test).configureEach {
 tasks.test {
 	useJUnitPlatform()
 }
-targetCompatibility = JavaVersion.VERSION_11

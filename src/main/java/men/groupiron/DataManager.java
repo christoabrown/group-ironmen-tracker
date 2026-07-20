@@ -50,6 +50,8 @@ public class DataManager {
     @Getter
     private final DataState seedVault = new DataState("seed_vault", false);
     @Getter
+    private final DataState potionStorage = new DataState("potion_storage", false);
+    @Getter
     private final DataState achievementDiary = new DataState("diary_vars", false);
     @Getter
     private final DepositedItems deposited = new DepositedItems();
@@ -96,6 +98,7 @@ public class DataManager {
             interacting.consumeState(updates);
             deposited.consumeState(updates);
             seedVault.consumeState(updates);
+            potionStorage.consumeState(updates);
             achievementDiary.consumeState(updates);
             collectionLogV2Manager.consumeClogItems(updates);
 
@@ -141,6 +144,7 @@ public class DataManager {
         interacting.restoreState();
         deposited.restoreState();
         seedVault.restoreState();
+        potionStorage.restoreState();
         achievementDiary.restoreState();
     }
 
