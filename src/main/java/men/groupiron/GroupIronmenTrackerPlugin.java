@@ -19,7 +19,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.task.Schedule;
 import javax.inject.Inject;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,7 +49,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
     @Override
     protected void startUp() throws Exception {
         collectionLogWidgetSubscriber.startUp();
-        log.info("Group Ironmen Tracker started!");
+        log.info("Group Ironmen Tracker v{} started!", PluginVersion.get());
     }
 
     @Override
@@ -133,7 +132,9 @@ public class GroupIronmenTrackerPlugin extends Plugin {
             if (w != null && potionStoreVars == null) {
                 int[] trigger = w.getVarTransmitTrigger();
                 potionStoreVars = new HashSet<>();
-                Arrays.stream(trigger).forEach(potionStoreVars::add);
+                for (int varId : trigger) {
+                    potionStoreVars.add(varId);
+                }
             }
         }
     }
@@ -256,9 +257,7 @@ public class GroupIronmenTrackerPlugin extends Plugin {
 
         if (player != null) {
             PotionStorageState potionStorageState = PotionStorageState.fromClient(player.getName(), client, itemManager);
-            if (potionStorageState != null) {
-                dataManager.getPotionStorage().update(potionStorageState);
-            }
+            dataManager.getPotionStorage().update(potionStorageState);
         }
     }
 

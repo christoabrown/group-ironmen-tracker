@@ -6,7 +6,6 @@ import net.runelite.api.EnumID;
 import net.runelite.api.ScriptID;
 import net.runelite.client.game.ItemManager;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -20,7 +19,6 @@ public class PotionStorageState implements ConsumableState {
         this.items = items;
     }
 
-    @Nullable
     public static PotionStorageState fromClient(String playerName, Client client, ItemManager itemManager) {
         List<ItemContainerItem> items = new ArrayList<>();
 
@@ -41,9 +39,8 @@ public class PotionStorageState implements ConsumableState {
                     // Canonicalize the 1-dose variant's item ID so the potion type has a
                     // consistent identifier regardless of how many doses are currently stored.
                     int canonicalOneDoseItemId = itemManager.canonicalize(potionEnum.getIntValue(1));
-                    int quantity = doses;
-                    if (canonicalOneDoseItemId > 0 && quantity > 0) {
-                        items.add(new ItemContainerItem(canonicalOneDoseItemId, quantity));
+                    if (canonicalOneDoseItemId > 0) {
+                        items.add(new ItemContainerItem(canonicalOneDoseItemId, doses));
                     }
                 }
             }
@@ -73,12 +70,6 @@ public class PotionStorageState implements ConsumableState {
         if (o == this) return true;
         if (!(o instanceof PotionStorageState)) return false;
         PotionStorageState other = (PotionStorageState) o;
-        if (other.items.size() != items.size()) return false;
-
-        for (int i = 0; i < items.size(); i++) {
-            if (!items.get(i).equals(other.items.get(i))) return false;
-        }
-
-        return true;
+        return items.equals(other.items);
     }
 }

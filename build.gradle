@@ -35,7 +35,13 @@ dependencies {
 }
 
 group = 'men.groupiron'
-version = '1.6.1'
+version = '1.7.0'
+
+processResources {
+	filesMatching('**/version.properties') {
+		expand(projectVersion: project.version)
+	}
+}
 
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
