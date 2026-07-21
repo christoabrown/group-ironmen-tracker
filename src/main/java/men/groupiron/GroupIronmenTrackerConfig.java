@@ -32,6 +32,25 @@ public interface GroupIronmenTrackerConfig extends Config {
         return "";
     }
 
+    @ConfigSection(
+            name = "Data Transmission",
+            description = "Configure your data transmission settings.",
+            position = 1,
+            closedByDefault = true
+    )
+    String transmitSection = "TransmitSection";
+
+    @ConfigItem(
+            keyName = "locationOption",
+            name = "Transmit In-Game Location",
+            position = 1,
+            description = "Display your player location on a map via the website. ",
+            section = transmitSection
+    )
+    default boolean locationOption() {
+        return true;
+    }
+
     @ConfigItem(
             keyName = "groupToken",
             name = "Group Token",

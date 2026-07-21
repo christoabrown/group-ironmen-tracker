@@ -85,6 +85,9 @@ public class DataManager {
 
             Map<String, Object> updates = new HashMap<>();
             updates.put("name", playerName);
+            if (locationOption()) {
+                position.consumeState(updates);
+            }
             inventory.consumeState(updates);
             bank.consumeState(updates);
             equipment.consumeState(updates);
@@ -92,7 +95,6 @@ public class DataManager {
             resources.consumeState(updates);
             skills.consumeState(updates);
             quests.consumeState(updates);
-            position.consumeState(updates);
             runePouch.consumeState(updates);
             quiver.consumeState(updates);
             interacting.consumeState(updates);
@@ -131,6 +133,9 @@ public class DataManager {
 
     // NOTE: These states should only be restored if a new update did not come in at some point before calling this
     private void restoreStateIfNothingUpdated() {
+        if (locationOption()) {
+            position.restoreState();
+        }
         inventory.restoreState();
         bank.restoreState();
         equipment.restoreState();
@@ -138,7 +143,6 @@ public class DataManager {
         resources.restoreState();
         skills.restoreState();
         quests.restoreState();
-        position.restoreState();
         runePouch.restoreState();
         quiver.restoreState();
         interacting.restoreState();
@@ -159,6 +163,15 @@ public class DataManager {
         }
 
         return groupName;
+    }
+
+    private boolean locationOption() {
+        boolean locationOption = config.locationOption();
+        if (!locationOption) {
+            return false;
+        }
+
+        return true;
     }
 
     private String getUpdateGroupMemberUrl() {
