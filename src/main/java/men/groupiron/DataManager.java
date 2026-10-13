@@ -89,14 +89,18 @@ public class DataManager {
             bank.consumeState(updates);
             equipment.consumeState(updates);
             sharedBank.consumeState(updates);
-            resources.consumeState(updates);
             skills.consumeState(updates);
             quests.consumeState(updates);
-            position.consumeState(updates);
             runePouch.consumeState(updates);
             quiver.consumeState(updates);
-            interacting.consumeState(updates);
             deposited.consumeState(updates);
+            if (!hideOnlineStatus()) {
+                resources.consumeState(updates);
+                interacting.consumeState(updates);
+                if (transmitLocation()) {
+                    position.consumeState(updates);
+                }
+            }
             seedVault.consumeState(updates);
             potionStorage.consumeState(updates);
             achievementDiary.consumeState(updates);
@@ -135,14 +139,18 @@ public class DataManager {
         bank.restoreState();
         equipment.restoreState();
         sharedBank.restoreState();
-        resources.restoreState();
         skills.restoreState();
         quests.restoreState();
-        position.restoreState();
         runePouch.restoreState();
         quiver.restoreState();
-        interacting.restoreState();
         deposited.restoreState();
+        if (!hideOnlineStatus()) {
+            resources.restoreState();
+            interacting.restoreState();
+            if (transmitLocation()) {
+                position.restoreState();
+            }
+        }
         seedVault.restoreState();
         potionStorage.restoreState();
         achievementDiary.restoreState();
@@ -159,6 +167,16 @@ public class DataManager {
         }
 
         return groupName;
+    }
+
+    private boolean transmitLocation() {
+        return config.locationOption();
+    }
+
+    // NOTE: The website considers a member online if any of their data was updated recently. Resources, location and
+    // interacting change constantly while logged in, so withholding them hides the member's presence.
+    private boolean hideOnlineStatus() {
+        return config.hideOnlineStatus();
     }
 
     private String getUpdateGroupMemberUrl() {

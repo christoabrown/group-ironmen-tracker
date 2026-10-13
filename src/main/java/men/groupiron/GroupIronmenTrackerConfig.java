@@ -22,6 +22,14 @@ public interface GroupIronmenTrackerConfig extends Config {
     )
     String connectionSection = "ConnectionSection";
 
+    @ConfigSection(
+            name = "Data Transmission",
+            description = "Configure which data is sent to the website",
+            position = 2,
+            closedByDefault = true
+    )
+    String transmitSection = "TransmitSection";
+
     @ConfigItem(
             keyName = "groupName",
             name = "Group Name (on the website)",
@@ -51,5 +59,27 @@ public interface GroupIronmenTrackerConfig extends Config {
     )
     default String baseUrlOverride() {
         return "";
+    }
+
+    @ConfigItem(
+            keyName = "locationOption",
+            name = "Transmit In-Game Location",
+            description = "Display your player location on the map on the website",
+            position = 0,
+            section = transmitSection
+    )
+    default boolean locationOption() {
+        return true;
+    }
+
+    @ConfigItem(
+            keyName = "hideOnlineStatus",
+            name = "Hide Online Status",
+            description = "Stop sending live data (hitpoints, prayer, run energy, world, location and current target) so the website does not show you as online. Changes to items, skills, quests etc. are still sent and will briefly mark you as active.",
+            position = 1,
+            section = transmitSection
+    )
+    default boolean hideOnlineStatus() {
+        return false;
     }
 }
